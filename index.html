@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Salle de Jeux SALVE</title>
+    <title>GameRoom Pro</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a2e">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SALVE">
+    <meta name="apple-mobile-web-app-title" content="GameRoom Pro">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -681,7 +681,7 @@
 <div id="license-overlay">
     <div class="lic-card">
         <div class="lic-logo">🎮</div>
-        <div class="lic-title">SALVE</div>
+        <div class="lic-title">GameRoom Pro</div>
         <div class="lic-expired" id="lic-expired-msg">Votre période d'essai de 30 jours est terminée.</div>
         <div class="lic-pay-box">
             <div class="lic-pay-title">💳 Comment obtenir votre licence</div>
@@ -691,7 +691,7 @@
             <div class="lic-pay-row"><span>WhatsApp</span><span class="val" id="lic-whatsapp">+229 XX XX XX XX</span></div>
         </div>
         <div class="lic-sep">— Entrez votre clé après paiement —</div>
-        <input class="lic-input" id="lic-key-input" type="text" placeholder="SALVE-XXXX-XXXX-XXXX" maxlength="19" oninput="formatLicKey(this)" />
+        <input class="lic-input" id="lic-key-input" type="text" placeholder="GRP-XXXX-XXXX-XXXX" maxlength="17" oninput="formatLicKey(this)" />
         <button class="lic-btn" onclick="activateLicense()">✓ Activer ma licence</button>
         <div class="lic-error" id="lic-error">Clé invalide. Vérifiez et réessayez.</div>
         <div class="lic-success" id="lic-success">✓ Licence activée ! Rechargement...</div>
@@ -701,7 +701,7 @@
 <!-- Écran de connexion -->
 <div id="login-overlay">
     <div class="login-box">
-        <h2>🎮 SALVE</h2>
+        <h2 id="login-title">🎮 GameRoom Pro</h2>
         <p>Espace gestionnaire — connectez-vous</p>
         <input class="login-input" id="login-user" type="text" placeholder="Identifiant" autocomplete="off" />
         <input class="login-input" id="login-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') doLogin()" />
@@ -716,7 +716,7 @@
 <header>
     <div></div>
     <div class="header-center">
-        <h1>&#127918; Salle de Jeux SALVE</h1>
+        <h1>&#127918; GameRoom Pro</h1>
         <p id="datetime">Chargement...</p>
     </div>
     <div class="header-btns">
@@ -941,7 +941,7 @@
 
     function validateLicense(key) {
         key = (key || '').toUpperCase().replace(/\s/g, '');
-        var m = key.match(/^SALVE-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/);
+        var m = key.match(/^GRP-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/);
         if (!m) return false;
         var expected = (_lhash(m[1] + m[2], 0xABC31F9E) & 0xFFFF).toString(36).toUpperCase().padStart(4, '0').substring(0, 4);
         return m[3] === expected;
@@ -949,11 +949,11 @@
 
     function formatLicKey(input) {
         var v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (!v.startsWith('SALVE')) v = 'SALVE' + v.replace(/^SALVE/,'');
-        var raw = v.replace(/^SALVE/, '');
+        if (!v.startsWith('GRP')) v = 'GRP' + v.replace(/^GRP/, '');
+        var raw = v.replace(/^GRP/, '');
         var parts = [];
         for (var i = 0; i < Math.min(raw.length, 12); i += 4) parts.push(raw.substring(i, i+4));
-        input.value = 'SALVE' + (parts.length ? '-' + parts.join('-') : '');
+        input.value = 'GRP' + (parts.length ? '-' + parts.join('-') : '');
     }
 
     function activateLicense() {
@@ -1040,7 +1040,7 @@
                 return cfg;
             }
         } catch(e) {}
-        return { tarifs: DEFAULT_TARIFS, postes: DEFAULT_POSTES, roomName: 'Salle de Jeux SALVE', consoles: DEFAULT_CONSOLES };
+        return { tarifs: DEFAULT_TARIFS, postes: DEFAULT_POSTES, roomName: 'GameRoom Pro', consoles: DEFAULT_CONSOLES };
     }
 
     function saveConfig(cfg) {
@@ -1051,7 +1051,7 @@
     var TARIFS = cfg.tarifs;
     var POSTES = cfg.postes;
     var CONSOLES = cfg.consoles || DEFAULT_CONSOLES;
-    var ROOM_NAME = cfg.roomName || 'Salle de Jeux SALVE';
+    var ROOM_NAME = cfg.roomName || 'GameRoom Pro';
 
     function getConsoleColor(nom) {
         var c = CONSOLES.find(function(c) { return c.nom === nom; });
@@ -1431,7 +1431,7 @@
             '.total{text-align:center;font-size:2rem;font-weight:bold;margin:12px 0}' +
             '.merci{text-align:center;font-size:0.85rem;margin-top:10px}' +
             '</style></head><body>' +
-            '<h2>Salle de Jeux SALVE</h2><hr>' +
+            '<h2>' + ROOM_NAME + '</h2><hr>' +
             '<p><b>Joueur :</b> ' + r.joueur + '</p>' +
             '<p><b>Poste :</b> ' + r.poste + '</p>' +
             '<p><b>Console :</b> ' + r.console + '</p>' +

@@ -1,7 +1,7 @@
 {
-  "name": "Salle de Jeux SALVE",
-  "short_name": "SALVE",
-  "description": "Gestion de la salle de jeux vidéo SALVE",
+  "name": "GameRoom Pro",
+  "short_name": "GRP",
+  "description": "Logiciel de gestion de salle de jeux vidéo",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
