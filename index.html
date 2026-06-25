@@ -688,6 +688,7 @@
             <div class="lic-pay-row"><span>Prix</span><span class="val price">10 000 FCFA</span></div>
             <div class="lic-pay-row"><span>MTN MoMo</span><span class="val" id="lic-momo">+229 XX XX XX XX</span></div>
             <div class="lic-pay-row"><span>Moov Money</span><span class="val" id="lic-moov">+229 XX XX XX XX</span></div>
+            <div class="lic-pay-row"><span>Téléphone</span><span class="val" id="lic-tel">+229 XX XX XX XX</span></div>
             <div class="lic-pay-row"><span>WhatsApp</span><span class="val" id="lic-whatsapp">+229 XX XX XX XX</span></div>
         </div>
         <div class="lic-sep">— Entrez votre clé après paiement —</div>
@@ -926,10 +927,11 @@
     // Pour changer les infos de contact : modifier les valeurs
     // LIC_MOMO, LIC_MOOV, LIC_WHATSAPP ci-dessous
     // =========================================================
-    var LIC_MOMO      = '+229 XX XX XX XX'; // ← Mets ton numéro MTN MoMo ici
-    var LIC_MOOV      = '+229 XX XX XX XX'; // ← Mets ton numéro Moov Money ici
-    var LIC_WHATSAPP  = '+229 XX XX XX XX'; // ← Mets ton numéro WhatsApp ici
-    var LIC_TRIAL     = 30;                 // Jours d'essai gratuit
+    var LIC_MOMO      = '+229 01 66 37 09 21';
+    var LIC_MOOV      = '+229 01 94 07 36 50';
+    var LIC_TEL       = '+229 01 40 59 54 27';
+    var LIC_WHATSAPP  = '+229 66 37 09 21';
+    var LIC_TRIAL     = 10;                 // Jours d'essai gratuit
 
     function _lhash(s, seed) {
         var h = (seed >>> 0);
@@ -989,6 +991,7 @@
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('lic-momo').textContent = LIC_MOMO;
             document.getElementById('lic-moov').textContent = LIC_MOOV;
+            document.getElementById('lic-tel').textContent = LIC_TEL;
             document.getElementById('lic-whatsapp').textContent = LIC_WHATSAPP;
         } else {
             // Bannière d'essai
