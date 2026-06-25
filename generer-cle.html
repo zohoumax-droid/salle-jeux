@@ -13,6 +13,7 @@ h1 { font-size:1.3rem; color:#a78bfa; letter-spacing:2px; margin-bottom:4px; }
 label { display:block; text-align:left; color:#aaa; font-size:0.85rem; margin-bottom:6px; }
 input { width:100%; padding:13px 16px; border-radius:10px; border:1px solid #3a3a7a; background:#0a0a14; color:#fff; font-size:1rem; margin-bottom:20px; outline:none; }
 input:focus { border-color:#7c3aed; }
+.device-input { font-family:monospace; letter-spacing:3px; font-size:1.1rem; border-color:#7c3aed; }
 button { width:100%; padding:13px; border-radius:10px; background:#7c3aed; border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:20px; }
 button:hover { background:#6d28d9; }
 .result { background:#1e1e42; border-radius:12px; padding:20px; display:none; }
@@ -24,8 +25,10 @@ button:hover { background:#6d28d9; }
 .warning strong { color:#ffd700; }
 .history { margin-top:24px; text-align:left; }
 .history h3 { color:#a78bfa; font-size:0.88rem; margin-bottom:10px; }
-.hitem { background:#1a1a3a; border-radius:8px; padding:10px 14px; margin-bottom:6px; font-size:0.82rem; color:#ccc; display:flex; justify-content:space-between; }
+.hitem { background:#1a1a3a; border-radius:8px; padding:10px 14px; margin-bottom:6px; font-size:0.82rem; color:#ccc; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
 .hitem .hkey { color:#4ade80; font-family:monospace; font-size:0.8rem; }
+.notice { background:#1e1e3a; border:1px solid #3a3a7a; border-radius:10px; padding:12px 14px; font-size:0.8rem; color:#aaa; margin-bottom:20px; text-align:left; line-height:1.6; }
+.notice strong { color:#a78bfa; }
 </style>
 </head>
 <body>
@@ -33,8 +36,20 @@ button:hover { background:#6d28d9; }
     <h1>🔑 GÉNÉRATEUR DE CLÉS</h1>
     <p class="sub">Usage exclusif — GameRoom Pro</p>
 
+    <div class="notice">
+        <strong>Comment ça marche :</strong><br>
+        Le client t'envoie son <strong>code appareil</strong> (affiché dans l'app).<br>
+        Tu entres ce code + son nom ici → tu lui envoies la clé générée.<br>
+        La clé ne fonctionnera que sur SON appareil.
+    </div>
+
+    <label>Code appareil du client (8 caractères)</label>
+    <input class="device-input" type="text" id="device-code" placeholder="Ex: A3KM7BQN" maxlength="8"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')" />
+
     <label>Référence client (nom ou numéro)</label>
-    <input type="text" id="ref" placeholder="Ex: Salle Kpankpan ou CLIENT001" maxlength="20" oninput="this.value=this.value.toUpperCase()" />
+    <input type="text" id="ref" placeholder="Ex: Salle Kpankpan ou CLIENT001" maxlength="20"
+        oninput="this.value=this.value.toUpperCase()" />
 
     <button onclick="generer()">Générer la clé</button>
 
@@ -47,7 +62,7 @@ button:hover { background:#6d28d9; }
     <div class="warning">
         <strong>⚠ Confidentiel</strong><br>
         Ce fichier est réservé à Marcel ZOHOU.<br>
-        Ne pas le partager. Chaque clé est unique.
+        Ne pas le partager. Chaque clé est liée à un seul appareil.
     </div>
 
     <div class="history" id="history-section" style="display:none">
@@ -71,23 +86,25 @@ function _lp(val) {
     return ((val & 0x7FFF) + 46656).toString(36).toUpperCase();
 }
 
-function generateLicenseKey(ref) {
+function generateLicenseKey(deviceCode, ref) {
+    var d = deviceCode.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
     var r = ref.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
     while (r.length < 8) r += 'X';
-    var p1 = _lp(_lhash(r.substring(0,4), 0xDEADB33F));
-    var p2 = _lp(_lhash(r.substring(4,8), 0xCAFEB4BE));
+    var p1 = _lp(_lhash(d, 0xDEADB33F));
+    var p2 = _lp(_lhash(r, 0xCAFEB4BE));
     var p3 = _lp(_lhash(p1 + p2, 0xABC31F9E));
     return 'GRP-' + p1 + '-' + p2 + '-' + p3;
 }
 
 function generer() {
+    var dev = document.getElementById('device-code').value.trim();
     var ref = document.getElementById('ref').value.trim();
+    if (!dev || dev.length < 8) { alert('Entre le code appareil complet (8 caractères).'); return; }
     if (!ref) { alert('Entre une référence client.'); return; }
-    var key = generateLicenseKey(ref);
+    var key = generateLicenseKey(dev, ref);
     document.getElementById('key-out').textContent = key;
     document.getElementById('result').style.display = 'block';
-
-    _history.unshift({ ref: ref, key: key });
+    _history.unshift({ dev: dev, ref: ref, key: key });
     if (_history.length > 20) _history.pop();
     renderHistory();
 }
@@ -106,7 +123,7 @@ function renderHistory() {
     var list = document.getElementById('history-list');
     sec.style.display = 'block';
     list.innerHTML = _history.map(function(h) {
-        return '<div class="hitem"><span>' + h.ref + '</span><span class="hkey">' + h.key + '</span></div>';
+        return '<div class="hitem"><span>' + h.ref + ' [' + h.dev + ']</span><span class="hkey">' + h.key + '</span></div>';
     }).join('');
 }
 </script>
