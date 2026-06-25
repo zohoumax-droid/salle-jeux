@@ -1,4 +1,4 @@
-const CACHE = 'grp-app-v1';
+const CACHE = 'grp-app-v2';
 const FILES = [
     './index.html',
     './manifest.json',
