@@ -950,12 +950,15 @@
         return h;
     }
 
+    function _lp(val) {
+        return ((val & 0x7FFF) + 46656).toString(36).toUpperCase();
+    }
+
     function validateLicense(key) {
         key = (key || '').toUpperCase().replace(/\s/g, '');
         var m = key.match(/^GRP-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/);
         if (!m) return false;
-        var expected = (_lhash(m[1] + m[2], 0xABC31F9E) & 0xFFFF).toString(36).toUpperCase().padStart(4, '0').substring(0, 4);
-        return m[3] === expected;
+        return m[3] === _lp(_lhash(m[1] + m[2], 0xABC31F9E));
     }
 
     function formatLicKey(input) {

@@ -67,12 +67,16 @@ function _lhash(s, seed) {
     return h;
 }
 
+function _lp(val) {
+    return ((val & 0x7FFF) + 46656).toString(36).toUpperCase();
+}
+
 function generateLicenseKey(ref) {
     var r = ref.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
     while (r.length < 8) r += 'X';
-    var p1 = (_lhash(r.substring(0,4), 0xDEADB33F) & 0xFFFF).toString(36).toUpperCase().padStart(4,'0').substring(0,4);
-    var p2 = (_lhash(r.substring(4,8), 0xCAFEB4BE) & 0xFFFF).toString(36).toUpperCase().padStart(4,'0').substring(0,4);
-    var p3 = (_lhash(p1 + p2, 0xABC31F9E) & 0xFFFF).toString(36).toUpperCase().padStart(4,'0').substring(0,4);
+    var p1 = _lp(_lhash(r.substring(0,4), 0xDEADB33F));
+    var p2 = _lp(_lhash(r.substring(4,8), 0xCAFEB4BE));
+    var p3 = _lp(_lhash(p1 + p2, 0xABC31F9E));
     return 'GRP-' + p1 + '-' + p2 + '-' + p3;
 }
 
