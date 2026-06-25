@@ -89,6 +89,63 @@
 
         #main-content { display: none; }
 
+        /* === Système de licence === */
+        #license-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #0a0a14;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        #license-overlay.active { display: flex; }
+        .lic-card {
+            background: #12122a;
+            border: 2px solid #7c3aed;
+            border-radius: 20px;
+            padding: 36px 28px;
+            width: 100%; max-width: 420px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(124,58,237,0.25);
+        }
+        .lic-logo { font-size: 2.8rem; margin-bottom: 6px; }
+        .lic-title { font-size: 1.4rem; font-weight: 700; color: #a78bfa; letter-spacing: 2px; margin-bottom: 4px; }
+        .lic-expired { color: #ff4d6d; font-size: 0.95rem; margin: 10px 0 20px; }
+        .lic-pay-box {
+            background: #1e1e42; border-radius: 12px; padding: 18px; margin-bottom: 20px;
+            border: 1px solid #2a2a6a; text-align: left;
+        }
+        .lic-pay-title { color: #a78bfa; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; }
+        .lic-pay-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.88rem; color: #ccc; border-bottom: 1px solid #2a2a5a; }
+        .lic-pay-row:last-child { border-bottom: none; }
+        .lic-pay-row .val { font-weight: 700; color: #fff; }
+        .lic-pay-row .val.price { color: #4ade80; font-size: 1.1rem; }
+        .lic-sep { color: #555; font-size: 0.82rem; margin: 14px 0 12px; }
+        .lic-input {
+            width: 100%; padding: 13px 16px; border-radius: 10px;
+            border: 1px solid #3a3a7a; background: #0a0a14;
+            color: #fff; font-size: 1rem; text-align: center;
+            letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 12px; outline: none;
+        }
+        .lic-input:focus { border-color: #7c3aed; }
+        .lic-btn {
+            width: 100%; padding: 13px; border-radius: 10px;
+            background: #7c3aed; border: none; color: #fff;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+        }
+        .lic-btn:hover { background: #6d28d9; }
+        .lic-error { color: #ff4d6d; font-size: 0.85rem; margin-top: 8px; display: none; }
+        .lic-success { color: #4ade80; font-size: 0.85rem; margin-top: 8px; display: none; }
+        .trial-banner {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #fff; text-align: center; padding: 8px 16px;
+            font-size: 0.85rem; font-weight: 600; display: none;
+        }
+
         header {
             display: flex;
             align-items: center;
@@ -617,6 +674,30 @@
 </head>
 <body>
 
+<!-- Bannière d'essai -->
+<div class="trial-banner" id="trial-banner"></div>
+
+<!-- Écran de licence -->
+<div id="license-overlay">
+    <div class="lic-card">
+        <div class="lic-logo">🎮</div>
+        <div class="lic-title">SALVE</div>
+        <div class="lic-expired" id="lic-expired-msg">Votre période d'essai de 30 jours est terminée.</div>
+        <div class="lic-pay-box">
+            <div class="lic-pay-title">💳 Comment obtenir votre licence</div>
+            <div class="lic-pay-row"><span>Prix</span><span class="val price">10 000 FCFA</span></div>
+            <div class="lic-pay-row"><span>MTN MoMo</span><span class="val" id="lic-momo">+229 XX XX XX XX</span></div>
+            <div class="lic-pay-row"><span>Moov Money</span><span class="val" id="lic-moov">+229 XX XX XX XX</span></div>
+            <div class="lic-pay-row"><span>WhatsApp</span><span class="val" id="lic-whatsapp">+229 XX XX XX XX</span></div>
+        </div>
+        <div class="lic-sep">— Entrez votre clé après paiement —</div>
+        <input class="lic-input" id="lic-key-input" type="text" placeholder="SALVE-XXXX-XXXX-XXXX" maxlength="19" oninput="formatLicKey(this)" />
+        <button class="lic-btn" onclick="activateLicense()">✓ Activer ma licence</button>
+        <div class="lic-error" id="lic-error">Clé invalide. Vérifiez et réessayez.</div>
+        <div class="lic-success" id="lic-success">✓ Licence activée ! Rechargement...</div>
+    </div>
+</div>
+
 <!-- Écran de connexion -->
 <div id="login-overlay">
     <div class="login-box">
@@ -840,6 +921,86 @@
 </div>
 
 <script>
+    // =========================================================
+    // SYSTÈME DE LICENCE — NE PAS MODIFIER
+    // Pour changer les infos de contact : modifier les valeurs
+    // LIC_MOMO, LIC_MOOV, LIC_WHATSAPP ci-dessous
+    // =========================================================
+    var LIC_MOMO      = '+229 XX XX XX XX'; // ← Mets ton numéro MTN MoMo ici
+    var LIC_MOOV      = '+229 XX XX XX XX'; // ← Mets ton numéro Moov Money ici
+    var LIC_WHATSAPP  = '+229 XX XX XX XX'; // ← Mets ton numéro WhatsApp ici
+    var LIC_TRIAL     = 30;                 // Jours d'essai gratuit
+
+    function _lhash(s, seed) {
+        var h = (seed >>> 0);
+        for (var i = 0; i < s.length; i++) {
+            h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+        }
+        return h;
+    }
+
+    function validateLicense(key) {
+        key = (key || '').toUpperCase().replace(/\s/g, '');
+        var m = key.match(/^SALVE-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$/);
+        if (!m) return false;
+        var expected = (_lhash(m[1] + m[2], 0xABC31F9E) & 0xFFFF).toString(36).toUpperCase().padStart(4, '0').substring(0, 4);
+        return m[3] === expected;
+    }
+
+    function formatLicKey(input) {
+        var v = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!v.startsWith('SALVE')) v = 'SALVE' + v.replace(/^SALVE/,'');
+        var raw = v.replace(/^SALVE/, '');
+        var parts = [];
+        for (var i = 0; i < Math.min(raw.length, 12); i += 4) parts.push(raw.substring(i, i+4));
+        input.value = 'SALVE' + (parts.length ? '-' + parts.join('-') : '');
+    }
+
+    function activateLicense() {
+        var key = document.getElementById('lic-key-input').value.trim();
+        var errEl = document.getElementById('lic-error');
+        var okEl  = document.getElementById('lic-success');
+        errEl.style.display = 'none'; okEl.style.display = 'none';
+        if (!validateLicense(key)) { errEl.style.display = 'block'; return; }
+        localStorage.setItem('salve-license', key);
+        okEl.style.display = 'block';
+        setTimeout(function() { location.reload(); }, 1200);
+    }
+
+    function getLicenseStatus() {
+        var key = localStorage.getItem('salve-license');
+        if (key && validateLicense(key)) return { valid: true };
+        var install = localStorage.getItem('salve-install-date');
+        if (!install) {
+            install = new Date().toISOString();
+            localStorage.setItem('salve-install-date', install);
+        }
+        var days = Math.floor((Date.now() - new Date(install).getTime()) / 86400000);
+        var remaining = LIC_TRIAL - days;
+        return { valid: false, trial: true, remaining: remaining, expired: remaining <= 0 };
+    }
+
+    function initLicenseUI() {
+        var s = getLicenseStatus();
+        if (s.valid) return; // tout va bien
+        if (s.expired) {
+            // Bloquer l'accès
+            document.getElementById('license-overlay').classList.add('active');
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('lic-momo').textContent = LIC_MOMO;
+            document.getElementById('lic-moov').textContent = LIC_MOOV;
+            document.getElementById('lic-whatsapp').textContent = LIC_WHATSAPP;
+        } else {
+            // Bannière d'essai
+            var banner = document.getElementById('trial-banner');
+            banner.style.display = 'block';
+            banner.textContent = '⏳ Essai gratuit — ' + s.remaining + ' jour' + (s.remaining > 1 ? 's' : '') + ' restant' + (s.remaining > 1 ? 's' : '') + ' · Licence à 10 000 FCFA';
+        }
+    }
+
+    initLicenseUI();
+    // =========================================================
+
     var DEFAULT_TARIFS = {
         PS2:  { 30: 150, 60: 400, 120: 775  },
         PS3:  { 30: 200, 60: 400, 120: 800  },

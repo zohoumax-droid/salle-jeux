@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur de clés — SALVE</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a14; color:#fff; font-family:'Segoe UI',sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.card { background:#12122a; border:2px solid #7c3aed; border-radius:20px; padding:40px 32px; width:100%; max-width:440px; text-align:center; box-shadow:0 0 60px rgba(124,58,237,0.3); }
+h1 { font-size:1.3rem; color:#a78bfa; letter-spacing:2px; margin-bottom:4px; }
+.sub { color:#555; font-size:0.85rem; margin-bottom:30px; }
+label { display:block; text-align:left; color:#aaa; font-size:0.85rem; margin-bottom:6px; }
+input { width:100%; padding:13px 16px; border-radius:10px; border:1px solid #3a3a7a; background:#0a0a14; color:#fff; font-size:1rem; margin-bottom:20px; outline:none; }
+input:focus { border-color:#7c3aed; }
+button { width:100%; padding:13px; border-radius:10px; background:#7c3aed; border:none; color:#fff; font-size:1rem; font-weight:700; cursor:pointer; margin-bottom:20px; }
+button:hover { background:#6d28d9; }
+.result { background:#1e1e42; border-radius:12px; padding:20px; display:none; }
+.result-label { color:#aaa; font-size:0.82rem; margin-bottom:8px; }
+.key { font-size:1.4rem; font-weight:700; color:#4ade80; letter-spacing:3px; font-family:monospace; margin-bottom:14px; }
+.copy-btn { width:auto; padding:8px 22px; font-size:0.85rem; background:#2a2a5a; margin:0; border-radius:8px; }
+.copy-btn:hover { background:#3a3a7a; }
+.warning { background:#1a1a00; border:1px solid #555500; border-radius:10px; padding:14px; font-size:0.8rem; color:#aaa; margin-top:20px; text-align:left; line-height:1.5; }
+.warning strong { color:#ffd700; }
+.history { margin-top:24px; text-align:left; }
+.history h3 { color:#a78bfa; font-size:0.88rem; margin-bottom:10px; }
+.hitem { background:#1a1a3a; border-radius:8px; padding:10px 14px; margin-bottom:6px; font-size:0.82rem; color:#ccc; display:flex; justify-content:space-between; }
+.hitem .hkey { color:#4ade80; font-family:monospace; font-size:0.8rem; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>🔑 GÉNÉRATEUR DE CLÉS</h1>
+    <p class="sub">Usage exclusif — Salle de Jeux SALVE</p>
+
+    <label>Référence client (nom ou numéro)</label>
+    <input type="text" id="ref" placeholder="Ex: Salle Kpankpan ou CLIENT001" maxlength="20" oninput="this.value=this.value.toUpperCase()" />
+
+    <button onclick="generer()">Générer la clé</button>
+
+    <div class="result" id="result">
+        <div class="result-label">Clé de licence générée :</div>
+        <div class="key" id="key-out"></div>
+        <button class="copy-btn" onclick="copier()">📋 Copier</button>
+    </div>
+
+    <div class="warning">
+        <strong>⚠ Confidentiel</strong><br>
+        Ce fichier est réservé à Marcel ZOHOU.<br>
+        Ne pas le partager. Chaque clé est unique.
+    </div>
+
+    <div class="history" id="history-section" style="display:none">
+        <h3>📋 Clés générées (session)</h3>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<script>
+var _history = [];
+
+function _lhash(s, seed) {
+    var h = (seed >>> 0);
+    for (var i = 0; i < s.length; i++) {
+        h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+    }
+    return h;
+}
+
+function generateLicenseKey(ref) {
+    var r = ref.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
+    while (r.length < 8) r += 'X';
+    var p1 = (_lhash(r.substring(0,4), 0xDEADB33F) & 0xFFFF).toString(36).toUpperCase().padStart(4,'0').substring(0,4);
+    var p2 = (_lhash(r.substring(4,8), 0xCAFEB4BE) & 0xFFFF).toString(36).toUpperCase().padStart(4,'0').substring(0,4);
+    var p3 = (_lhash(p1 + p2, 0xABC31F9E) & 0xFFFF).toString(36).toUpperCase().padStart(4,'0').substring(0,4);
+    return 'SALVE-' + p1 + '-' + p2 + '-' + p3;
+}
+
+function generer() {
+    var ref = document.getElementById('ref').value.trim();
+    if (!ref) { alert('Entre une référence client.'); return; }
+    var key = generateLicenseKey(ref);
+    document.getElementById('key-out').textContent = key;
+    document.getElementById('result').style.display = 'block';
+
+    _history.unshift({ ref: ref, key: key });
+    if (_history.length > 20) _history.pop();
+    renderHistory();
+}
+
+function copier() {
+    var key = document.getElementById('key-out').textContent;
+    navigator.clipboard.writeText(key).then(function() {
+        var btn = document.querySelector('.copy-btn');
+        btn.textContent = '✓ Copié !';
+        setTimeout(function() { btn.textContent = '📋 Copier'; }, 2000);
+    });
+}
+
+function renderHistory() {
+    var sec = document.getElementById('history-section');
+    var list = document.getElementById('history-list');
+    sec.style.display = 'block';
+    list.innerHTML = _history.map(function(h) {
+        return '<div class="hitem"><span>' + h.ref + '</span><span class="hkey">' + h.key + '</span></div>';
+    }).join('');
+}
+</script>
+</body>
+</html>
