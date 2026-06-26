@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameRoom Pro — Admin</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',sans-serif; background:#0a0a14; color:#fff; min-height:100vh; }
+
+        /* LOGIN */
+        #login-screen {
+            min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+        }
+        .login-box {
+            background:rgba(255,255,255,0.04); border:1px solid rgba(124,58,237,0.4);
+            border-radius:18px; padding:36px 32px; width:100%; max-width:380px;
+        }
+        .login-box h2 { color:#a78bfa; text-align:center; margin-bottom:6px; font-size:1.3rem; }
+        .login-box p  { color:#777; text-align:center; font-size:0.82rem; margin-bottom:24px; }
+        .inp {
+            width:100%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15);
+            border-radius:10px; padding:11px 14px; color:#fff; font-size:0.95rem;
+            outline:none; margin-bottom:12px;
+        }
+        .inp:focus { border-color:#7c3aed; }
+        .btn-login {
+            width:100%; padding:12px; background:linear-gradient(135deg,#7c3aed,#6c3eff);
+            border:none; border-radius:10px; color:#fff; font-weight:700; font-size:0.95rem; cursor:pointer;
+        }
+        .login-err { color:#ff4d6d; font-size:0.82rem; text-align:center; margin-top:10px; display:none; }
+
+        /* DASHBOARD */
+        #dashboard { display:none; }
+        header {
+            background:#10102a; border-bottom:1px solid rgba(124,58,237,0.3);
+            padding:14px 24px; display:flex; align-items:center; justify-content:space-between;
+        }
+        header h1 { color:#a78bfa; font-size:1.1rem; font-weight:700; }
+        .logout-btn {
+            background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.4);
+            color:#ff4d6d; border-radius:8px; padding:6px 14px; cursor:pointer; font-size:0.82rem;
+        }
+        .content { padding:24px; max-width:1100px; margin:0 auto; }
+
+        /* STATS */
+        .stats-row { display:flex; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
+        .stat-card {
+            flex:1; min-width:140px; background:rgba(255,255,255,0.04);
+            border:1px solid rgba(124,58,237,0.25); border-radius:14px; padding:18px 20px;
+        }
+        .stat-card .label { color:#aaa; font-size:0.78rem; margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em; }
+        .stat-card .value { font-size:2rem; font-weight:700; color:#a78bfa; }
+        .stat-card.green .value { color:#4caf50; }
+        .stat-card.gold  .value { color:#ffd700; }
+
+        /* GENKEY */
+        .genkey-box {
+            background:rgba(255,255,255,0.03); border:1px solid rgba(124,58,237,0.25);
+            border-radius:14px; padding:20px 24px; margin-bottom:28px;
+        }
+        .genkey-box h3 { color:#a78bfa; font-size:0.95rem; margin-bottom:14px; }
+        .genkey-row { display:flex; gap:10px; flex-wrap:wrap; }
+        .genkey-row input {
+            flex:1; min-width:180px; background:rgba(255,255,255,0.07);
+            border:1px solid rgba(255,255,255,0.15); border-radius:10px;
+            padding:10px 14px; color:#fff; font-size:0.95rem; outline:none;
+            text-transform:uppercase; letter-spacing:3px; font-family:monospace;
+        }
+        .genkey-row input:focus { border-color:#7c3aed; }
+        .btn-gen {
+            background:linear-gradient(135deg,#7c3aed,#6c3eff); border:none;
+            border-radius:10px; color:#fff; padding:10px 20px; font-weight:700; cursor:pointer;
+        }
+        .key-result {
+            margin-top:12px; font-family:monospace; font-size:1.2rem; font-weight:700;
+            color:#4caf50; letter-spacing:3px; display:none; text-align:center;
+            background:rgba(76,175,80,0.1); border:1px solid rgba(76,175,80,0.3);
+            border-radius:10px; padding:12px; cursor:pointer;
+        }
+        .key-result small { display:block; font-size:0.72rem; color:#aaa; letter-spacing:0; margin-top:4px; font-family:sans-serif; }
+
+        /* TABLE */
+        .section-title { color:#a78bfa; font-size:0.88rem; font-weight:700; margin-bottom:14px; text-transform:uppercase; letter-spacing:.05em; }
+        .search-row { display:flex; gap:10px; margin-bottom:14px; }
+        .search-row input {
+            flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+            border-radius:10px; padding:9px 14px; color:#fff; font-size:0.88rem; outline:none;
+        }
+        .search-row input:focus { border-color:#7c3aed; }
+        .table-wrap { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+        th { background:rgba(124,58,237,0.2); color:#a78bfa; padding:10px 12px; text-align:left; font-size:0.78rem; text-transform:uppercase; letter-spacing:.05em; }
+        td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); color:#ddd; vertical-align:middle; }
+        tr:hover td { background:rgba(255,255,255,0.03); }
+        .badge {
+            display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700;
+        }
+        .badge.on  { background:rgba(76,175,80,0.15);  color:#4caf50; border:1px solid rgba(76,175,80,0.3); }
+        .badge.off { background:rgba(255,77,109,0.15); color:#ff4d6d; border:1px solid rgba(255,77,109,0.3); }
+        .btn-toggle {
+            border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.78rem; font-weight:700; border:none;
+        }
+        .btn-toggle.actif    { background:rgba(255,77,109,0.15); color:#ff4d6d; border:1px solid rgba(255,77,109,0.35); }
+        .btn-toggle.inactif  { background:rgba(76,175,80,0.15);  color:#4caf50; border:1px solid rgba(76,175,80,0.35); }
+        .btn-toggle:hover { opacity:.75; }
+        .empty-row td { text-align:center; color:#555; padding:30px; }
+        .loading { text-align:center; color:#666; padding:40px; }
+    </style>
+</head>
+<body>
+
+<!-- ÉCRAN LOGIN -->
+<div id="login-screen">
+    <div class="login-box">
+        <h2>&#127918; GameRoom Pro</h2>
+        <p>Tableau de bord administrateur</p>
+        <input class="inp" id="sa-user" type="text" placeholder="Identifiant" autocomplete="off" />
+        <input class="inp" id="sa-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') saLogin()" />
+        <button class="btn-login" onclick="saLogin()">Se connecter</button>
+        <div class="login-err" id="login-err"></div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+    <header>
+        <h1>&#127918; GameRoom Pro — Administration</h1>
+        <button class="logout-btn" onclick="saLogout()">&#128274; Déconnexion</button>
+    </header>
+    <div class="content">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Total clients</div>
+                <div class="value" id="stat-total">—</div>
+            </div>
+            <div class="stat-card green">
+                <div class="label">Comptes actifs</div>
+                <div class="value" id="stat-actifs">—</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="label">Ce mois-ci</div>
+                <div class="value" id="stat-mois">—</div>
+            </div>
+        </div>
+
+        <!-- Générateur de clé licence -->
+        <div class="genkey-box">
+            <h3>&#128273; Générateur de clé de licence</h3>
+            <div class="genkey-row">
+                <input id="device-input" type="text" placeholder="CODE APPAREIL (ex: A1B2C3D4)" maxlength="8" />
+                <button class="btn-gen" onclick="genKey()">Générer la clé</button>
+            </div>
+            <div class="key-result" id="key-result" onclick="copyKey()">
+                <span id="key-text"></span>
+                <small>Cliquez pour copier</small>
+            </div>
+        </div>
+
+        <!-- Liste des clients -->
+        <div class="section-title">&#127968; Clients inscrits</div>
+        <div class="search-row">
+            <input id="search-input" type="text" placeholder="Rechercher par nom ou ville…" oninput="filterTable()" />
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nom de la salle</th>
+                        <th>Ville</th>
+                        <th>Admin</th>
+                        <th>Inscription</th>
+                        <th>Sessions</th>
+                        <th>Dernière activité</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="salles-tbody">
+                    <tr><td colspan="9" class="loading">Chargement…</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    var API = 'https://gameroom-backend-production.up.railway.app';
+    var sa_token = sessionStorage.getItem('sa-token');
+    var salles_data = [];
+
+    if (sa_token) showDashboard();
+
+    function saLogin() {
+        var u = document.getElementById('sa-user').value.trim();
+        var p = document.getElementById('sa-pass').value;
+        var err = document.getElementById('login-err');
+        err.style.display = 'none';
+        fetch(API + '/superadmin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: u, password: p })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.token) {
+                sessionStorage.setItem('sa-token', data.token);
+                sa_token = data.token;
+                showDashboard();
+            } else {
+                err.textContent = data.error || 'Identifiants incorrects';
+                err.style.display = 'block';
+            }
+        })
+        .catch(() => { err.textContent = 'Erreur réseau'; err.style.display = 'block'; });
+    }
+
+    function saLogout() {
+        sessionStorage.removeItem('sa-token');
+        sa_token = null;
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    function showDashboard() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadStats();
+        loadSalles();
+    }
+
+    function api(method, path, body) {
+        return fetch(API + path, {
+            method,
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sa_token },
+            body: body ? JSON.stringify(body) : undefined
+        }).then(r => r.json());
+    }
+
+    function loadStats() {
+        api('GET', '/superadmin/stats').then(d => {
+            document.getElementById('stat-total').textContent  = d.total  ?? '—';
+            document.getElementById('stat-actifs').textContent = d.actifs ?? '—';
+            document.getElementById('stat-mois').textContent   = d.ce_mois ?? '—';
+        });
+    }
+
+    function loadSalles() {
+        api('GET', '/superadmin/salles').then(data => {
+            salles_data = Array.isArray(data) ? data : [];
+            renderTable(salles_data);
+        }).catch(() => {
+            document.getElementById('salles-tbody').innerHTML = '<tr><td colspan="9" class="loading" style="color:#ff4d6d">Erreur de chargement</td></tr>';
+        });
+    }
+
+    function renderTable(rows) {
+        var tbody = document.getElementById('salles-tbody');
+        if (!rows.length) {
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Aucun client inscrit</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map(function(s) {
+            var date = s.created_at ? new Date(s.created_at).toLocaleDateString('fr-FR') : '—';
+            var activ = s.derniere_activite || '—';
+            var badge = s.is_active
+                ? '<span class="badge on">Actif</span>'
+                : '<span class="badge off">Bloqué</span>';
+            var btn = s.is_active
+                ? '<button class="btn-toggle actif" onclick="toggleSalle(' + s.id + ')">Bloquer</button>'
+                : '<button class="btn-toggle inactif" onclick="toggleSalle(' + s.id + ')">Activer</button>';
+            return '<tr>' +
+                '<td>' + s.id + '</td>' +
+                '<td><strong>' + (s.nom || '—') + '</strong></td>' +
+                '<td>' + (s.ville || '—') + '</td>' +
+                '<td><code>' + (s.admin_user || '—') + '</code></td>' +
+                '<td>' + date + '</td>' +
+                '<td>' + (s.total_sessions || 0) + '</td>' +
+                '<td>' + activ + '</td>' +
+                '<td>' + badge + '</td>' +
+                '<td>' + btn + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function filterTable() {
+        var q = document.getElementById('search-input').value.toLowerCase();
+        var filtered = salles_data.filter(function(s) {
+            return (s.nom || '').toLowerCase().includes(q) || (s.ville || '').toLowerCase().includes(q);
+        });
+        renderTable(filtered);
+    }
+
+    function toggleSalle(id) {
+        api('PUT', '/superadmin/salles/' + id + '/toggle').then(function(data) {
+            var s = salles_data.find(function(x) { return x.id === id; });
+            if (s) s.is_active = data.is_active;
+            filterTable();
+            loadStats();
+        });
+    }
+
+    function genKey() {
+        var code = document.getElementById('device-input').value.trim().toUpperCase();
+        if (code.length < 4) return alert('Entrez le code appareil du client (8 caractères)');
+        api('POST', '/superadmin/genkey', { device_id: code }).then(function(data) {
+            if (data.key) {
+                document.getElementById('key-text').textContent = data.key;
+                document.getElementById('key-result').style.display = 'block';
+            }
+        });
+    }
+
+    function copyKey() {
+        var key = document.getElementById('key-text').textContent;
+        navigator.clipboard.writeText(key).then(function() {
+            document.querySelector('#key-result small').textContent = '✓ Copié !';
+            setTimeout(function() {
+                document.querySelector('#key-result small').textContent = 'Cliquez pour copier';
+            }, 2000);
+        });
+    }
+</script>
+</body>
+</html>
