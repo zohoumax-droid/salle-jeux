@@ -687,6 +687,109 @@
         .rapport-console-card.ps3 .c-name { color: var(--ps3); }
         .rapport-console-card.ps4 .c-name { color: var(--ps4); }
 
+        /* ===== MODE CLAIR ===== */
+        body.light { background:#f0f0f8; color:#1a1a2e; }
+
+        body.light header {
+            background: linear-gradient(135deg,#ffffff,#eeeeff);
+            border-color:#d0d0e8;
+            box-shadow:0 2px 20px rgba(124,58,237,0.08);
+        }
+        body.light header h1 { color:#7c3aed; }
+        body.light header p { color:#666; }
+        body.light .btn-fullscreen { background:rgba(0,0,0,0.06); color:#333; border-color:#bbb; }
+        body.light .btn-fullscreen:hover { background:rgba(0,0,0,0.12); }
+        body.light .btn-settings { background:rgba(100,180,255,0.12); color:#1565c0; border-color:#1565c0; }
+        body.light .btn-rapport { background:rgba(180,120,0,0.1); color:#a06000; border-color:#c07800; }
+        body.light .btn-theme { background:rgba(124,58,237,0.1); color:#7c3aed; border-color:#7c3aed; }
+
+        body.light .stats-bar .stat-card { background:#fff; border-color:#d0d0e8; color:#1a1a2e; }
+        body.light .stat-card .number { color:#7c3aed; }
+        body.light .stat-card .label { color:#666; }
+        body.light .stat-card.green .number { color:#2e7d32; }
+        body.light .stat-card.gold .number { color:#a06000; }
+
+        body.light .poste-card { background:#ffffff; border-color:#d0d0e8; color:#1a1a2e; }
+        body.light .poste-card.occupé { background:#f5f0ff; }
+        body.light .poste-card.panne { border-color:#ff9800; background:#fff8f0; }
+        body.light .poste-name { color:#1a1a2e; }
+        body.light .console-type { color:#555; }
+        body.light .timer-display { color:#1a1a2e; background:rgba(0,0,0,0.04); }
+        body.light .prix-display { color:#2e7d32; }
+        body.light .player-name-display { color:#333; }
+        body.light .player-input { background:#f5f5ff; border-color:#c0c0e0; color:#1a1a2e; }
+        body.light .player-input::placeholder { color:#aaa; }
+        body.light .duration-select { background:#f5f5ff; border-color:#c0c0e0; color:#1a1a2e; }
+        body.light .btn-prolonger { background:rgba(124,58,237,0.08); border-color:rgba(124,58,237,0.3); color:#7c3aed; }
+        body.light .btn-pause { background:rgba(124,58,237,0.08); border-color:rgba(124,58,237,0.3); color:#7c3aed; }
+        body.light .btn-panne { border-color:#e65100; color:#e65100; }
+        body.light .btn-panne.active { background:rgba(76,175,80,0.1); border-color:#2e7d32; color:#2e7d32; }
+        body.light .panne-msg { color:#e65100; }
+
+        body.light .caisse-section,
+        body.light .depenses-section { background:#ffffff; border-color:#d0d0e8; }
+        body.light .caisse-section h2,
+        body.light .depenses-section h2 { color:#7c3aed; }
+        body.light .total-recettes { color:#2e7d32; }
+        body.light .historique p.empty-msg { color:#999; }
+        body.light .hist-item { background:#f5f5ff; border-bottom-color:#e0e0f0; color:#1a1a2e; }
+        body.light .h-time { color:#777; }
+        body.light .h-montant { color:#2e7d32; }
+        body.light .h-name { color:#555; }
+        body.light .bilan-row { border-bottom-color:#e0e0f0; }
+        body.light .b-label { color:#555; }
+        body.light .b-value.green { color:#2e7d32; }
+        body.light .b-value.red { color:#c62828; }
+        body.light .b-value.gold { color:#a06000; }
+        body.light .depense-input { background:#f5f5ff; border-color:#c0c0e0; color:#1a1a2e; }
+        body.light .depense-input::placeholder { color:#aaa; }
+        body.light .depense-list .dep-item { background:#f5f5ff; color:#1a1a2e; }
+        body.light .dep-desc { color:#333; }
+        body.light .dep-montant { color:#c62828; }
+
+        body.light .modal-overlay { background:rgba(0,0,0,0.4); }
+        body.light .modal { background:#fff; color:#1a1a2e; border-color:#d0d0e8; }
+        body.light .modal h3 { color:#7c3aed; }
+        body.light .modal-montant { color:#2e7d32; }
+        body.light #modal-info { color:#555; }
+
+        body.light .settings-modal { background:#fff; color:#1a1a2e; }
+        body.light .settings-header { background:#f5f5ff; border-bottom-color:#d0d0e8; }
+        body.light .settings-header h3 { color:#7c3aed; }
+        body.light .settings-tab { color:#666; }
+        body.light .settings-tab.active { color:#7c3aed; border-bottom-color:#7c3aed; }
+        body.light .settings-body { background:#fff; }
+        body.light .settings-panel label,
+        body.light .settings-group label { color:#555; }
+        body.light .settings-input { background:#f0f0fa; border-color:#c0c0e0; color:#1a1a2e; }
+        body.light .settings-input:focus { border-color:#7c3aed; }
+        body.light .settings-footer { background:#f5f5ff; border-top-color:#e0e0f0; }
+        body.light .tarif-console-title { /* keep console colors */ }
+        body.light .settings-row label { color:#555; }
+        body.light .postes-manage-item { background:#f5f5ff; border-color:#d0d0e8; color:#1a1a2e; }
+        body.light #panel-postes input,
+        body.light #panel-postes select,
+        body.light .add-poste-form input,
+        body.light .add-poste-form select { background:#f0f0fa; border-color:#c0c0e0; color:#1a1a2e; }
+        body.light .data-section-title { color:#7c3aed; }
+        body.light .data-section-desc { color:#666; }
+        body.light .btn-data.blue { background:rgba(124,58,237,0.1); border-color:#7c3aed; color:#7c3aed; }
+        body.light .btn-data.green { background:rgba(46,125,50,0.1); border-color:#2e7d32; color:#2e7d32; }
+
+        body.light .history-modal,
+        body.light .rapport-modal { background:#fff; color:#1a1a2e; }
+        body.light .history-modal h3,
+        body.light .rapport-modal h3 { color:#7c3aed; }
+        body.light .history-day { border-bottom-color:#e0e0f0; }
+        body.light .history-day-title { color:#7c3aed; background:#f5f5ff; }
+        body.light .history-day-item { background:#fafafe; color:#1a1a2e; border-bottom-color:#e8e8f8; }
+        body.light .rapport-console-card { background:#f5f5ff; border-color:#d0d0e8; }
+        body.light .rapport-table th { background:#7c3aed; color:#fff; }
+        body.light .rapport-table td { border-color:#d0d0e8; color:#333; }
+        body.light .rapport-table tr:nth-child(even) td { background:#f5f5ff; }
+
+        body.light .role-badge { background:rgba(255,152,0,0.12); border-color:#ff9800; color:#c65000; }
+
         /* === PANNE === */
         .poste-card.panne { opacity: 0.75; border: 2px dashed #ff9800 !important; }
         .status-badge.panne { background: #ff9800; color: #000; }
@@ -767,6 +870,7 @@
     <div class="header-btns">
         <button class="btn-header" style="background:rgba(156,39,176,0.12);color:#ce93d8;border:1px solid #9c27b0" onclick="openHistorique()">&#128197; Historique</button>
         <button class="btn-header btn-rapport" onclick="openRapport()">&#128202; Rapport</button>
+        <button class="btn-header btn-theme" id="theme-btn" onclick="toggleTheme()" title="Mode clair / sombre">&#9728; Clair</button>
         <button class="btn-header btn-fullscreen" onclick="toggleFullscreen()">&#9974; Plein écran</button>
         <button class="btn-header btn-settings" onclick="openSettings()">&#9881; Paramètres</button>
         <button class="btn-header" style="background:rgba(255,77,109,0.12);color:#ff4d6d;border:1px solid #ff4d6d" onclick="doLogout()">&#128274; Déconnexion</button>
@@ -1016,6 +1120,9 @@
 </div>
 
 <script>
+    // Appliquer le thème immédiatement pour éviter le flash
+    (function(){ if(localStorage.getItem('salve-theme')==='light') document.body.classList.add('light'); })();
+
     // =========================================================
     // SYSTÈME DE LICENCE — NE PAS MODIFIER
     // Pour changer les infos de contact : modifier les valeurs
@@ -2077,6 +2184,22 @@
         } else {
             document.getElementById('login-error').style.display = 'block';
             document.getElementById('login-pass').value = '';
+        }
+    }
+
+    // ===== THEME =====
+    function toggleTheme() {
+        var isLight = document.body.classList.toggle('light');
+        localStorage.setItem('salve-theme', isLight ? 'light' : 'dark');
+        var btn = document.getElementById('theme-btn');
+        if (btn) btn.innerHTML = isLight ? '&#9790; Sombre' : '&#9728; Clair';
+    }
+
+    function loadTheme() {
+        if (localStorage.getItem('salve-theme') === 'light') {
+            document.body.classList.add('light');
+            var btn = document.getElementById('theme-btn');
+            if (btn) btn.innerHTML = '&#9790; Sombre';
         }
     }
 
