@@ -1,5 +1,6 @@
-const CACHE = 'grp-app-v6';
+const CACHE = 'grp-app-v7';
 const FILES = [
+    './gameroom-pro.html',
     './index.html',
     './manifest.json',
     './icon-192.png',
@@ -31,7 +32,7 @@ self.addEventListener('fetch', function(e) {
     e.respondWith(
         caches.match(e.request).then(function(r) {
             return r || fetch(e.request).catch(function() {
-                return caches.match('./index.html');
+                return caches.match('./gameroom-pro.html');
             });
         })
     );

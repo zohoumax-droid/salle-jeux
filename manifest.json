@@ -2,7 +2,7 @@
   "name": "GameRoom Pro",
   "short_name": "GRP",
   "description": "Logiciel de gestion de salle de jeux vidéo",
-  "start_url": "./index.html",
+  "start_url": "./gameroom-pro.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#1a1a2e",
