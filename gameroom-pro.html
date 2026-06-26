@@ -2525,14 +2525,12 @@
                     sessionStorage.setItem('grp-api-token', grp_token);
                     var role = data.role === 'admin' ? '1' : '2';
                     sessionStorage.setItem('salve-auth', role);
-                    // Sync le nom de salle depuis l'API (seulement si pas encore personnalisé)
+                    // Toujours sync le nom de salle depuis l'API
                     if (data.salle_nom) {
+                        ROOM_NAME = data.salle_nom;
                         var c = getConfig();
-                        if (!c.roomName || c.roomName === 'GameRoom Pro') {
-                            ROOM_NAME = data.salle_nom;
-                            c.roomName = data.salle_nom;
-                            saveConfig(c);
-                        }
+                        c.roomName = data.salle_nom;
+                        saveConfig(c);
                     }
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
