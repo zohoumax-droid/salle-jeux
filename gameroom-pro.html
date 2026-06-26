@@ -1472,6 +1472,7 @@
             }
             // Redémarrer le timer
             var prix = sessions[posteId].prix;
+            if (timers[posteId]) { clearInterval(timers[posteId]); }
             timers[posteId] = setInterval(function() {
                 if (!sessions[posteId] || sessions[posteId].paused) return;
                 sessions[posteId].remaining--;
@@ -1542,7 +1543,8 @@
     function updatePrix(posteId) {
         var poste = POSTES.find(function(p) { return p.id === posteId; });
         var duree = parseInt(document.getElementById('duree-' + posteId).value);
-        document.getElementById('prix-' + posteId).textContent = TARIFS[poste.console][duree].toLocaleString('fr-FR') + ' FCFA';
+        var tarif = TARIFS[poste.console] && TARIFS[poste.console][duree];
+        document.getElementById('prix-' + posteId).textContent = tarif ? tarif.toLocaleString('fr-FR') + ' FCFA' : '— FCFA';
     }
 
     function cc(consoleName) {
@@ -1556,7 +1558,7 @@
         var nomJoueur = document.getElementById('player-' + posteId).value.trim() || 'Joueur';
         var c = cc(poste.console);
 
-        sessions[posteId] = { remaining: duree * 60, prix: prix, nomJoueur: nomJoueur };
+        sessions[posteId] = { remaining: duree * 60, prix: prix, nomJoueur: nomJoueur, paused: false };
 
         document.getElementById('card-' + posteId).className = 'poste-card ' + c + ' occupé';
         document.getElementById('badge-' + posteId).textContent = 'Occupé';
@@ -1574,6 +1576,7 @@
         document.getElementById('playerdisplay-' + posteId).style.display = 'block';
         document.getElementById('prolonger-' + posteId).className = 'prolonger-row active';
 
+        if (timers[posteId]) { clearInterval(timers[posteId]); }
         timers[posteId] = setInterval(function() {
             if (!sessions[posteId]) { clearInterval(timers[posteId]); return; }
             sessions[posteId].remaining--;
@@ -1656,6 +1659,10 @@
         if (modalCallback) { modalCallback(); modalCallback = null; }
     }
 
+    function escapeHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     function printReceipt() {
         if (!currentReceipt) return;
         var r = currentReceipt;
@@ -1669,11 +1676,11 @@
             '.merci{text-align:center;font-size:0.85rem;margin-top:10px}' +
             '</style></head><body>' +
             '<h2>' + ROOM_NAME + '</h2><hr>' +
-            '<p><b>Joueur :</b> ' + r.joueur + '</p>' +
-            '<p><b>Poste :</b> ' + r.poste + '</p>' +
-            '<p><b>Console :</b> ' + r.console + '</p>' +
-            '<p><b>Date :</b> ' + r.date + '</p>' +
-            '<p><b>Heure :</b> ' + r.heure + '</p>' +
+            '<p><b>Joueur :</b> ' + escapeHtml(r.joueur) + '</p>' +
+            '<p><b>Poste :</b> ' + escapeHtml(r.poste) + '</p>' +
+            '<p><b>Console :</b> ' + escapeHtml(r.console) + '</p>' +
+            '<p><b>Date :</b> ' + escapeHtml(r.date) + '</p>' +
+            '<p><b>Heure :</b> ' + escapeHtml(r.heure) + '</p>' +
             '<hr><div class="total">' + r.montant.toLocaleString('fr-FR') + ' FCFA</div><hr>' +
             '<p class="merci">Merci pour votre visite !</p>' +
             '<script>window.onload=function(){window.print();}<\/script>' +
@@ -2200,10 +2207,9 @@
     }
 
     function loadTheme() {
-        if (localStorage.getItem('salve-theme') === 'light') {
-            document.body.classList.add('light');
-            var btn = document.getElementById('theme-btn');
-            if (btn) btn.innerHTML = '&#9790; Sombre';
+        var btn = document.getElementById('theme-btn');
+        if (btn && localStorage.getItem('salve-theme') === 'light') {
+            btn.innerHTML = '&#9790; Sombre';
         }
     }
 
@@ -2325,6 +2331,7 @@
     }
 
     function initApp() {
+        loadTheme();
         applyConsoleStyles();
         loadData();
         loadPannes();
