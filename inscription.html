@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GameRoom Pro — Créer un compte</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Segoe UI',sans-serif;
+            background:#0a0a14;
+            color:#fff;
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+        .box {
+            background:rgba(255,255,255,0.04);
+            border:1px solid rgba(124,58,237,0.4);
+            border-radius:18px;
+            padding:36px 32px;
+            width:100%;
+            max-width:420px;
+        }
+        .box h2 { color:#a78bfa; font-size:1.4rem; margin-bottom:6px; text-align:center; }
+        .box p  { color:#aaa; font-size:0.85rem; text-align:center; margin-bottom:24px; }
+        label { display:block; color:#aaa; font-size:0.82rem; margin-bottom:5px; }
+        input {
+            width:100%;
+            background:rgba(255,255,255,0.07);
+            border:1px solid rgba(255,255,255,0.15);
+            border-radius:10px;
+            padding:11px 14px;
+            color:#fff;
+            font-size:0.95rem;
+            outline:none;
+            margin-bottom:14px;
+            transition:border .2s;
+        }
+        input:focus { border-color:#7c3aed; }
+        .group { margin-bottom:4px; }
+        .btn {
+            width:100%;
+            padding:13px;
+            background:linear-gradient(135deg,#7c3aed,#6c3eff);
+            border:none;
+            border-radius:12px;
+            color:#fff;
+            font-size:1rem;
+            font-weight:700;
+            cursor:pointer;
+            margin-top:6px;
+            transition:opacity .2s;
+        }
+        .btn:hover { opacity:0.88; }
+        .btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .msg { text-align:center; font-size:0.88rem; padding:10px; border-radius:8px; margin-top:14px; display:none; }
+        .msg.ok  { background:rgba(76,175,80,0.15); color:#4caf50; border:1px solid rgba(76,175,80,0.3); }
+        .msg.err { background:rgba(255,77,109,0.15); color:#ff4d6d; border:1px solid rgba(255,77,109,0.3); }
+        .back { display:block; text-align:center; margin-top:18px; color:#a78bfa; font-size:0.85rem; text-decoration:none; }
+        .back:hover { text-decoration:underline; }
+        hr { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:20px 0; }
+        .section-title { color:#a78bfa; font-size:0.8rem; font-weight:bold; text-transform:uppercase; letter-spacing:.05em; margin-bottom:14px; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h2>&#127918; GameRoom Pro</h2>
+    <p>Créez le compte de votre salle de jeux</p>
+
+    <div class="section-title">&#127968; Informations de la salle</div>
+    <div class="group">
+        <label>Nom de la salle *</label>
+        <input id="salle-nom" type="text" placeholder="ex: GameRoom Cotonou" maxlength="60" />
+    </div>
+    <div class="group">
+        <label>Ville</label>
+        <input id="salle-ville" type="text" placeholder="ex: Cotonou" maxlength="60" />
+    </div>
+
+    <hr>
+    <div class="section-title">&#128274; Compte administrateur</div>
+    <div class="group">
+        <label>Identifiant *</label>
+        <input id="reg-user" type="text" placeholder="ex: admin" maxlength="30" autocomplete="off" />
+    </div>
+    <div class="group">
+        <label>Mot de passe * (min. 4 caractères)</label>
+        <input id="reg-pass" type="password" placeholder="Mot de passe" />
+    </div>
+    <div class="group">
+        <label>Confirmer le mot de passe *</label>
+        <input id="reg-confirm" type="password" placeholder="Confirmer" onkeydown="if(event.key==='Enter') doRegister()" />
+    </div>
+
+    <button class="btn" id="reg-btn" onclick="doRegister()">Créer mon compte</button>
+    <div class="msg" id="reg-msg"></div>
+
+    <a href="./gameroom-pro.html" class="back">&#8592; Retour à la connexion</a>
+</div>
+
+<script>
+    var API_BASE = 'https://gameroom-backend-production.up.railway.app';
+
+    function doRegister() {
+        var salleNom   = document.getElementById('salle-nom').value.trim();
+        var salleVille = document.getElementById('salle-ville').value.trim();
+        var user       = document.getElementById('reg-user').value.trim();
+        var pass       = document.getElementById('reg-pass').value;
+        var confirm    = document.getElementById('reg-confirm').value;
+        var msg        = document.getElementById('reg-msg');
+        var btn        = document.getElementById('reg-btn');
+
+        msg.style.display = 'none';
+        if (!salleNom) return showMsg('Veuillez entrer le nom de votre salle.', false);
+        if (!user)     return showMsg('Veuillez entrer un identifiant.', false);
+        if (pass.length < 4) return showMsg('Le mot de passe doit faire au moins 4 caractères.', false);
+        if (pass !== confirm) return showMsg('Les mots de passe ne correspondent pas.', false);
+
+        btn.disabled = true;
+        btn.textContent = 'Création en cours…';
+
+        fetch(API_BASE + '/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ salle_nom: salleNom, ville: salleVille, username: user, password: pass })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.salle_id) {
+                showMsg('✓ Compte créé ! Redirection en cours…', true);
+                setTimeout(function() { window.location.href = './gameroom-pro.html'; }, 1800);
+            } else {
+                showMsg(data.error || 'Erreur lors de la création', false);
+            }
+        })
+        .catch(function() { showMsg('Erreur réseau. Vérifiez votre connexion.', false); })
+        .finally(function() { btn.disabled = false; btn.textContent = 'Créer mon compte'; });
+    }
+
+    function showMsg(text, ok) {
+        var el = document.getElementById('reg-msg');
+        el.textContent = text;
+        el.className = 'msg ' + (ok ? 'ok' : 'err');
+        el.style.display = 'block';
+    }
+</script>
+</body>
+</html>

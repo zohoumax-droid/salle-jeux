@@ -11,6 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GameRoom Pro">
     <link rel="apple-touch-icon" href="icon-192.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -815,6 +816,31 @@
         .btn-data.blue { background:rgba(124,58,237,0.2); border:1px solid #7c3aed; color:#a78bfa; }
         .btn-data.green { background:rgba(76,175,80,0.2); border:1px solid #4caf50; color:#4caf50; }
         .btn-data.purple { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; }
+        /* === FIRST LOGIN OVERLAY === */
+        #firstlogin-overlay {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(10,10,20,0.97); z-index:10000;
+            display:none; align-items:center; justify-content:center;
+        }
+
+        /* === EMPLOYEE LIST === */
+        .emp-list { display:flex; flex-direction:column; gap:8px; margin:10px 0; max-height:160px; overflow-y:auto; }
+        .emp-item { display:flex; align-items:center; justify-content:space-between; background:rgba(167,139,250,0.08); border:1px solid rgba(124,58,237,0.3); border-radius:8px; padding:8px 12px; }
+        .emp-name { color:#e0e0e0; font-size:0.88rem; }
+        .emp-tag { font-size:0.7rem; padding:2px 7px; border-radius:10px; background:rgba(0,200,80,0.1); color:#00e676; border:1px solid rgba(0,200,80,0.3); margin-left:6px; }
+        .emp-tag.new { background:rgba(255,152,0,0.1); color:#ffb74d; border-color:rgba(255,152,0,0.3); }
+        .emp-del { background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.35); color:#ff4d6d; border-radius:6px; padding:3px 9px; cursor:pointer; font-size:0.8rem; }
+        .emp-del:hover { background:rgba(255,77,109,0.28); }
+        body.light .emp-item { background:rgba(124,58,237,0.06); border-color:rgba(124,58,237,0.2); }
+        body.light .emp-name { color:#333; }
+
+        /* === CHARTS RAPPORT === */
+        .chart-section { margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.1); }
+        .chart-title { color:#a78bfa; font-size:0.85rem; font-weight:bold; margin-bottom:10px; text-align:center; }
+        .charts-row { display:flex; gap:14px; flex-wrap:wrap; }
+        .chart-box { flex:1; min-width:160px; }
+        body.light .chart-section { border-top-color:#d0d0e8; }
+
     </style>
 </head>
 <body>
@@ -852,12 +878,39 @@
 <!-- Écran de connexion -->
 <div id="login-overlay">
     <div class="login-box">
-        <h2 id="login-title">🎮 GameRoom Pro</h2>
-        <p>Espace gestionnaire — connectez-vous</p>
-        <input class="login-input" id="login-user" type="text" placeholder="Identifiant" autocomplete="off" />
-        <input class="login-input" id="login-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') doLogin()" />
-        <div class="login-error" id="login-error">Identifiant ou mot de passe incorrect</div>
-        <button class="btn btn-start" onclick="doLogin()">Se connecter</button>
+        <h2 id="login-title">&#127918; GameRoom Pro</h2>
+        <p id="login-subtitle">Espace gestionnaire — connectez-vous</p>
+        <!-- Formulaire connexion -->
+        <div id="login-form">
+            <input class="login-input" id="login-user" type="text" placeholder="Identifiant" autocomplete="off" />
+            <input class="login-input" id="login-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter') doLogin()" />
+            <div class="login-error" id="login-error">Identifiant ou mot de passe incorrect</div>
+            <button class="btn btn-start" onclick="doLogin()">Se connecter</button>
+            <a href="#" onclick="toggleRecovery(true);return false" style="display:block;text-align:center;margin-top:12px;color:#aaa;font-size:0.82rem">Mot de passe oublié ?</a>
+            <a href="./inscription.html" style="display:block;text-align:center;margin-top:8px;color:#a78bfa;font-size:0.85rem;text-decoration:none">+ Créer un compte salle</a>
+        </div>
+        <!-- Formulaire récupération -->
+        <div id="recovery-form" style="display:none">
+            <input class="login-input" id="rec-user" type="text" placeholder="Identifiant" autocomplete="off" />
+            <input class="login-input" id="rec-code" type="text" placeholder="Code de récupération" style="text-transform:uppercase;letter-spacing:3px;font-family:monospace" />
+            <input class="login-input" id="rec-pass" type="password" placeholder="Nouveau mot de passe" />
+            <input class="login-input" id="rec-confirm" type="password" placeholder="Confirmer" onkeydown="if(event.key==='Enter') doRecover()" />
+            <div class="login-error" id="rec-error" style="display:none"></div>
+            <button class="btn btn-start" onclick="doRecover()">Réinitialiser le mot de passe</button>
+            <a href="#" onclick="toggleRecovery(false);return false" style="display:block;text-align:center;margin-top:12px;color:#aaa;font-size:0.82rem">&#8592; Retour à la connexion</a>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay premier login (forcer changement de mot de passe) -->
+<div id="firstlogin-overlay">
+    <div class="login-box">
+        <h2>&#128274; Sécurisez votre compte</h2>
+        <p style="margin-bottom:16px;color:#aaa;font-size:0.85rem">Changez le mot de passe par défaut pour protéger votre salle.</p>
+        <input class="login-input" id="fl-new" type="password" placeholder="Nouveau mot de passe (min. 4 car.)" />
+        <input class="login-input" id="fl-confirm" type="password" placeholder="Confirmer le mot de passe" onkeydown="if(event.key==='Enter') saveFirstPassword()" />
+        <div class="login-error" id="fl-error" style="display:none"></div>
+        <button class="btn btn-start" onclick="saveFirstPassword()">&#10003; Enregistrer</button>
     </div>
 </div>
 
@@ -986,23 +1039,26 @@
                 <button class="btn btn-start" onclick="saveSecurite()">&#10003; Enregistrer</button>
 
                 <hr style="border-color:#2a2a5a;margin:22px 0">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-                    <p style="color:#a78bfa;font-size:0.88rem;font-weight:bold;margin:0">&#128119; Compte Caissier</p>
-                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#aaa;font-size:0.82rem">
-                        <input type="checkbox" id="caissier-active" style="width:18px;height:18px;cursor:pointer;accent-color:#7c3aed" />
-                        Activer
-                    </label>
+                <p style="color:#a78bfa;font-size:0.88rem;font-weight:bold;margin-bottom:6px">&#128273; Code de récupération</p>
+                <p style="color:#777;font-size:0.78rem;margin-bottom:10px">Si vous oubliez votre mot de passe, ce code vous permet de le réinitialiser. Notez-le et gardez-le en sécurité.</p>
+                <div id="recovery-code-display" style="display:none;font-family:monospace;font-size:1.3rem;font-weight:bold;text-align:center;padding:12px;background:rgba(108,62,255,0.15);border:1px solid #7c3aed;border-radius:10px;color:#a78bfa;letter-spacing:5px;margin-bottom:10px"></div>
+                <div class="settings-msg" id="recovery-msg"></div>
+                <button class="btn" style="background:rgba(167,139,250,0.12);border:1px solid #7c3aed;color:#a78bfa;width:100%" onclick="generateRecoveryCode()">&#128273; Générer un code</button>
+                <p style="color:#c0392b;font-size:0.74rem;margin-top:7px">&#9888; Ce code ne s'affiche qu'une seule fois. Notez-le immédiatement !</p>
+
+                <hr style="border-color:#2a2a5a;margin:22px 0">
+                <p style="color:#a78bfa;font-size:0.88rem;font-weight:bold;margin-bottom:10px">&#128119; Comptes Caissiers</p>
+                <div class="emp-list" id="emp-list"><div style="color:#777;font-size:0.82rem;text-align:center;padding:8px">Chargement…</div></div>
+                <div class="settings-group" style="margin-top:10px">
+                    <label>Identifiant</label>
+                    <input class="settings-input" id="emp-user" type="text" placeholder="ex: caissier2" maxlength="30" />
                 </div>
                 <div class="settings-group">
-                    <label>Identifiant caissier</label>
-                    <input class="settings-input" id="caissier-user" type="text" placeholder="ex: caissier" maxlength="30" />
+                    <label>Mot de passe</label>
+                    <input class="settings-input" id="emp-pass" type="password" placeholder="Min. 4 caractères" />
                 </div>
-                <div class="settings-group">
-                    <label>Mot de passe caissier</label>
-                    <input class="settings-input" id="caissier-pass" type="password" placeholder="Min. 4 caractères" />
-                </div>
-                <div class="settings-msg" id="caissier-msg"></div>
-                <button class="btn" style="background:rgba(167,139,250,0.15);border:1px solid #7c3aed;color:#a78bfa;width:100%" onclick="saveCaissier()">&#10003; Enregistrer le caissier</button>
+                <div class="settings-msg" id="emp-msg"></div>
+                <button class="btn" style="background:rgba(167,139,250,0.15);border:1px solid #7c3aed;color:#a78bfa;width:100%" onclick="addEmployee()">+ Ajouter un caissier</button>
                 <p style="color:#555;font-size:0.75rem;margin-top:10px">Le caissier peut gérer les sessions mais ne voit pas les paramètres.</p>
             </div>
 
@@ -1116,6 +1172,13 @@
     <div class="rapport-modal">
         <h3>&#128202; Rapport du jour</h3>
         <div id="rapport-content"></div>
+        <div class="chart-section" id="chart-section" style="display:none">
+            <div class="chart-title">&#128202; Statistiques</div>
+            <div class="charts-row">
+                <div class="chart-box"><canvas id="chart-console"></canvas></div>
+                <div class="chart-box"><canvas id="chart-semaine"></canvas></div>
+            </div>
+        </div>
         <div style="display:flex;gap:10px;margin-top:20px">
             <button class="btn btn-start" style="flex:1" onclick="printRapport()">&#128424; Imprimer</button>
             <button class="btn btn-stop" style="flex:1;display:block" onclick="closeRapport()">Fermer</button>
@@ -1850,6 +1913,7 @@
 
         document.getElementById('rapport-content').innerHTML = html;
         document.getElementById('modal-rapport').className = 'modal-overlay active';
+        renderRapportCharts(byConsole);
     }
 
     function closeRapport() {
@@ -2042,12 +2106,12 @@
         });
         tarifsHtml += '<br><button class="btn btn-start" onclick="saveTarifs()">✓ Enregistrer les tarifs</button><div class="settings-msg" id="tarifs-msg"></div>';
         document.getElementById('panel-tarifs').innerHTML = tarifsHtml;
-        // Caissier
-        var cai = cred.caissier || { active: false, user: 'caissier', pass: '' };
-        document.getElementById('caissier-active').checked = !!cai.active;
-        document.getElementById('caissier-user').value = cai.user || '';
-        document.getElementById('caissier-pass').value = cai.active ? cai.pass : '';
-        document.getElementById('caissier-msg').style.display = 'none';
+        // Employés
+        document.getElementById('emp-user').value = '';
+        document.getElementById('emp-pass').value = '';
+        document.getElementById('emp-msg').style.display = 'none';
+        if (grp_token) loadEmployees();
+        else document.getElementById('emp-list').innerHTML = '<div style="color:#777;font-size:0.82rem;text-align:center;padding:8px">Connexion API requise</div>';
         // Salle + logo
         document.getElementById('set-roomname').value = ROOM_NAME;
         document.getElementById('salle-msg').style.display = 'none';
@@ -2121,16 +2185,182 @@
         }
     }
 
-    function saveCaissier() {
-        var active = document.getElementById('caissier-active').checked;
-        var user = document.getElementById('caissier-user').value.trim();
-        var pass = document.getElementById('caissier-pass').value;
-        if (active && !user) { showMsg('caissier-msg', 'Identifiant vide.', false); return; }
-        if (active && pass.length < 4) { showMsg('caissier-msg', 'Minimum 4 caractères.', false); return; }
-        var cred = getCredentials();
-        cred.caissier = { active: active, user: user, pass: active ? pass : '' };
-        localStorage.setItem('salve-credentials', JSON.stringify(cred));
-        showMsg('caissier-msg', active ? 'Compte caissier activé !' : 'Compte caissier désactivé.', true);
+    // ===== RÉCUPÉRATION MOT DE PASSE =====
+    function toggleRecovery(show) {
+        document.getElementById('login-form').style.display = show ? 'none' : 'block';
+        document.getElementById('recovery-form').style.display = show ? 'block' : 'none';
+        var le = document.getElementById('login-error');
+        le.style.display = 'none'; le.style.color = '';
+        document.getElementById('rec-error').style.display = 'none';
+        document.getElementById('login-subtitle').textContent = show
+            ? 'Entrez votre identifiant et votre code de récupération'
+            : 'Espace gestionnaire — connectez-vous';
+    }
+
+    function doRecover() {
+        var user = document.getElementById('rec-user').value.trim();
+        var code = document.getElementById('rec-code').value.trim().toUpperCase();
+        var pass = document.getElementById('rec-pass').value;
+        var conf = document.getElementById('rec-confirm').value;
+        var errEl = document.getElementById('rec-error');
+        errEl.style.display = 'none';
+        if (!user || !code) { errEl.textContent = 'Identifiant et code requis.'; errEl.style.display = 'block'; return; }
+        if (pass.length < 4) { errEl.textContent = 'Minimum 4 caractères.'; errEl.style.display = 'block'; return; }
+        if (pass !== conf) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+        fetch(API_BASE + '/auth/recover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, recovery_code: code, new_password: pass })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.message) {
+                toggleRecovery(false);
+                document.getElementById('login-user').value = user;
+                var err = document.getElementById('login-error');
+                err.style.display = 'block';
+                err.style.color = '#4caf50';
+                err.textContent = '✓ Mot de passe réinitialisé ! Connectez-vous.';
+            } else {
+                errEl.textContent = data.error || 'Erreur';
+                errEl.style.display = 'block';
+            }
+        })
+        .catch(function() { errEl.textContent = 'Erreur réseau'; errEl.style.display = 'block'; });
+    }
+
+    function generateRecoveryCode() {
+        api('GET', '/auth/recovery-code')
+            .then(function(data) {
+                if (data.code) {
+                    var el = document.getElementById('recovery-code-display');
+                    el.textContent = data.code;
+                    el.style.display = 'block';
+                    showMsg('recovery-msg', '✓ Notez ce code immédiatement !', true);
+                } else {
+                    showMsg('recovery-msg', data.error || 'Erreur', false);
+                }
+            })
+            .catch(function() { showMsg('recovery-msg', 'Erreur réseau', false); });
+    }
+
+    // ===== PREMIER LOGIN =====
+    function saveFirstPassword() {
+        var np = document.getElementById('fl-new').value;
+        var cp = document.getElementById('fl-confirm').value;
+        var errEl = document.getElementById('fl-error');
+        errEl.style.display = 'none';
+        if (np.length < 4) { errEl.textContent = 'Minimum 4 caractères requis.'; errEl.style.display = 'block'; return; }
+        if (np !== cp) { errEl.textContent = 'Les mots de passe ne correspondent pas.'; errEl.style.display = 'block'; return; }
+        api('PUT', '/auth/first-password', { new_password: np })
+            .then(function(data) {
+                if (data.message) {
+                    document.getElementById('firstlogin-overlay').style.display = 'none';
+                } else {
+                    errEl.textContent = data.error || 'Erreur';
+                    errEl.style.display = 'block';
+                }
+            })
+            .catch(function() { errEl.textContent = 'Erreur réseau'; errEl.style.display = 'block'; });
+    }
+
+    // ===== GESTION EMPLOYÉS =====
+    function loadEmployees() {
+        api('GET', '/auth/employees')
+            .then(function(data) {
+                var list = document.getElementById('emp-list');
+                if (!Array.isArray(data) || data.length === 0) {
+                    list.innerHTML = '<div style="color:#777;font-size:0.82rem;text-align:center;padding:8px">Aucun caissier ajouté</div>';
+                    return;
+                }
+                list.innerHTML = data.map(function(e) {
+                    var tag = e.must_change_password ? '<span class="emp-tag new">mdp à changer</span>' : '<span class="emp-tag">actif</span>';
+                    return '<div class="emp-item">' +
+                        '<span class="emp-name">&#128119; ' + e.username + tag + '</span>' +
+                        '<button class="emp-del" onclick="deleteEmployee(' + e.id + ')">&#128465; Supprimer</button>' +
+                        '</div>';
+                }).join('');
+            })
+            .catch(function() {
+                document.getElementById('emp-list').innerHTML = '<div style="color:#ff4d6d;font-size:0.82rem;text-align:center;padding:8px">Erreur de chargement</div>';
+            });
+    }
+
+    function addEmployee() {
+        var user = document.getElementById('emp-user').value.trim();
+        var pass = document.getElementById('emp-pass').value;
+        if (!user) { showMsg('emp-msg', 'Identifiant vide.', false); return; }
+        if (pass.length < 4) { showMsg('emp-msg', 'Minimum 4 caractères.', false); return; }
+        api('POST', '/auth/employees', { username: user, password: pass })
+            .then(function(data) {
+                if (data.message) {
+                    showMsg('emp-msg', 'Caissier ajouté !', true);
+                    document.getElementById('emp-user').value = '';
+                    document.getElementById('emp-pass').value = '';
+                    loadEmployees();
+                } else {
+                    showMsg('emp-msg', data.error || 'Erreur', false);
+                }
+            })
+            .catch(function() { showMsg('emp-msg', 'Erreur réseau', false); });
+    }
+
+    function deleteEmployee(id) {
+        if (!confirm('Supprimer cet employé ?')) return;
+        api('DELETE', '/auth/employees/' + id)
+            .then(function() { loadEmployees(); })
+            .catch(function() { showMsg('emp-msg', 'Erreur réseau', false); });
+    }
+
+    // ===== GRAPHIQUES RAPPORT =====
+    var _charts = {};
+    function renderRapportCharts(byConsole) {
+        var entries = Object.entries(byConsole).filter(function(e){ return e[1].sessions > 0; });
+        var chartSection = document.getElementById('chart-section');
+        if (entries.length === 0) { chartSection.style.display = 'none'; return; }
+        chartSection.style.display = 'block';
+
+        var isLight = document.body.classList.contains('light');
+        var textColor = isLight ? '#333' : '#ccc';
+        var gridColor = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.08)';
+        var CONSOLE_COLORS = { PS2: '#2196F3', PS3: '#ff9800', PS4: '#e91e63' };
+
+        // Donut — sessions par console
+        if (_charts.console) _charts.console.destroy();
+        _charts.console = new Chart(document.getElementById('chart-console'), {
+            type: 'doughnut',
+            data: {
+                labels: entries.map(function(e){ return e[0]; }),
+                datasets: [{ data: entries.map(function(e){ return e[1].sessions; }),
+                    backgroundColor: entries.map(function(e){ return CONSOLE_COLORS[e[0]] || '#7c3aed'; }),
+                    borderWidth: 2, borderColor: isLight ? '#fff' : '#0a0a14' }]
+            },
+            options: { plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } }, cutout: '60%' }
+        });
+
+        // Bar — recettes 7 jours (chargé via API)
+        if (!grp_token) return;
+        api('GET', '/caisse/historique')
+            .then(function(rows) {
+                if (!Array.isArray(rows) || rows.length === 0) return;
+                var last7 = rows.slice(0, 7).reverse();
+                if (_charts.semaine) _charts.semaine.destroy();
+                _charts.semaine = new Chart(document.getElementById('chart-semaine'), {
+                    type: 'bar',
+                    data: {
+                        labels: last7.map(function(r){ return r.date.split('/').slice(0,2).join('/'); }),
+                        datasets: [{ label: 'Recettes (FCFA)', data: last7.map(function(r){ return parseInt(r.recettes); }),
+                            backgroundColor: 'rgba(108,62,255,0.6)', borderColor: '#7c3aed', borderWidth: 1, borderRadius: 4 }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+                            y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } }
+                        }
+                    }
+                });
+            });
     }
 
     function saveTarifs() {
@@ -2295,9 +2525,21 @@
                     sessionStorage.setItem('grp-api-token', grp_token);
                     var role = data.role === 'admin' ? '1' : '2';
                     sessionStorage.setItem('salve-auth', role);
+                    // Sync le nom de salle depuis l'API (seulement si pas encore personnalisé)
+                    if (data.salle_nom) {
+                        var c = getConfig();
+                        if (!c.roomName || c.roomName === 'GameRoom Pro') {
+                            ROOM_NAME = data.salle_nom;
+                            c.roomName = data.salle_nom;
+                            saveConfig(c);
+                        }
+                    }
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
                     initApp();
+                    if (data.must_change_password) {
+                        document.getElementById('firstlogin-overlay').style.display = 'flex';
+                    }
                 } else if (data.error) {
                     // L'API est joignable mais rejette les identifiants — pas de fallback local
                     errEl.style.display = 'block';
