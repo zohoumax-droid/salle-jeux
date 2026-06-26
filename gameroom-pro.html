@@ -2298,8 +2298,13 @@
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
                     initApp();
+                } else if (data.error) {
+                    // L'API est joignable mais rejette les identifiants — pas de fallback local
+                    errEl.style.display = 'block';
+                    errEl.textContent = data.error;
+                    document.getElementById('login-pass').value = '';
                 } else {
-                    // Fallback local si API ne répond pas correctement
+                    // Réponse inattendue — fallback local
                     localLogin(u, p);
                 }
             })
