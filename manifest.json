@@ -1,26 +1,40 @@
 {
   "name": "GameRoom Pro",
-  "short_name": "GRP",
-  "description": "Logiciel de gestion de salle de jeux vidéo",
+  "short_name": "GameRoom",
+  "description": "Gestion de salle de jeux vidéo — postes, sessions, caisse",
+  "id": "gameroom-pro",
   "start_url": "./gameroom-pro.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#1a1a2e",
-  "theme_color": "#1a1a2e",
-  "orientation": "portrait-primary",
+  "theme_color": "#6c3eff",
+  "orientation": "any",
   "lang": "fr",
+  "categories": ["productivity", "business"],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
