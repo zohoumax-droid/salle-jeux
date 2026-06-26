@@ -1322,6 +1322,17 @@
     var currentReceipt = null;
     var TODAY = new Date().toLocaleDateString('fr-FR');
 
+    // ===== API BACKEND =====
+    var API_BASE = 'https://gameroom-backend-production.up.railway.app';
+    var grp_token = sessionStorage.getItem('grp-api-token') || null;
+
+    function api(method, path, body) {
+        var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+        if (grp_token) opts.headers['Authorization'] = 'Bearer ' + grp_token;
+        if (body) opts.body = JSON.stringify(body);
+        return fetch(API_BASE + path, opts).then(function(r) { return r.json(); });
+    }
+
     // ===== SAUVEGARDE MULTI-JOURS =====
     function saveToHistory(date, rec, trans, deps) {
         try {
@@ -1338,6 +1349,30 @@
     }
 
     function loadData() {
+        if (grp_token) {
+            api('GET', '/caisse/today')
+                .then(function(data) {
+                    if (data && typeof data.recettes !== 'undefined') {
+                        recettes = data.recettes || 0;
+                        transactions = (data.transactions || []).map(function(t) {
+                            return { poste: t.poste, console: t.console, joueur: t.joueur, montant: t.montant, heure: t.heure };
+                        });
+                        depenses = (data.depenses || []).map(function(d) {
+                            return { id: d.id, desc: d.label, montant: d.montant, heure: d.date };
+                        });
+                        renderHistorique();
+                        renderDepenses();
+                        updateBilan();
+                        updateStats();
+                    }
+                })
+                .catch(function() { loadDataLocal(); });
+        } else {
+            loadDataLocal();
+        }
+    }
+
+    function loadDataLocal() {
         try {
             var saved = localStorage.getItem('salve-data');
             if (saved) {
@@ -1347,7 +1382,6 @@
                     transactions = data.transactions || [];
                     depenses = data.depenses || [];
                 } else {
-                    // Nouveau jour — sauvegarder hier dans l'historique
                     saveToHistory(data.date, data.recettes || 0, data.transactions || [], data.depenses || []);
                 }
             }
@@ -1372,12 +1406,17 @@
         var montant = parseInt(document.getElementById('dep-montant').value);
         if (!desc) { alert('Entrez une description.'); return; }
         if (!montant || montant <= 0) { alert('Entrez un montant valide.'); return; }
-        depenses.push({ desc: desc, montant: montant, heure: new Date().toLocaleTimeString('fr-FR') });
+        var dep = { desc: desc, montant: montant, heure: new Date().toLocaleTimeString('fr-FR') };
+        depenses.push(dep);
         document.getElementById('dep-desc').value = '';
         document.getElementById('dep-montant').value = '';
-        saveData();
         renderDepenses();
         updateBilan();
+        saveData();
+        if (grp_token) {
+            api('POST', '/caisse/depenses', { label: desc, montant: montant })
+                .catch(function() {});
+        }
     }
 
     function renderDepenses() {
@@ -1398,6 +1437,10 @@
     }
 
     function supprimerDepense(i) {
+        var dep = depenses[i];
+        if (grp_token && dep && dep.id) {
+            api('DELETE', '/caisse/depenses/' + dep.id).catch(function() {});
+        }
         depenses.splice(i, 1);
         saveData();
         renderDepenses();
@@ -1420,6 +1463,34 @@
 
     // ===== HISTORIQUE MULTI-JOURS =====
     function openHistorique() {
+        document.getElementById('modal-historique').className = 'modal-overlay active';
+        document.getElementById('history-content').innerHTML = '<p class="empty-msg">Chargement…</p>';
+        if (grp_token) {
+            api('GET', '/caisse/historique')
+                .then(function(rows) {
+                    if (!rows || rows.length === 0) {
+                        document.getElementById('history-content').innerHTML = '<p class="empty-msg">Aucun historique disponible</p>';
+                        return;
+                    }
+                    document.getElementById('history-content').innerHTML = rows.map(function(d) {
+                        var net = (d.recettes || 0) - (d.depenses || 0);
+                        return '<div class="history-day">' +
+                            '<div class="hd-date">&#128197; ' + d.date + '</div>' +
+                            '<div class="hd-stats">' +
+                            '<div class="hd-stat"><span class="hs-label">Sessions : </span><span class="hs-val">' + (d.nb_sessions || 0) + '</span></div>' +
+                            '<div class="hd-stat"><span class="hs-label">Recettes : </span><span class="hs-val green">' + (d.recettes || 0).toLocaleString('fr-FR') + ' FCFA</span></div>' +
+                            '<div class="hd-stat"><span class="hs-label">Dépenses : </span><span class="hs-val red">' + (d.depenses || 0).toLocaleString('fr-FR') + ' FCFA</span></div>' +
+                            '<div class="hd-stat"><span class="hs-label">Bénéfice : </span><span class="hs-val ' + (net >= 0 ? 'gold' : 'red') + '">' + net.toLocaleString('fr-FR') + ' FCFA</span></div>' +
+                            '</div></div>';
+                    }).join('');
+                })
+                .catch(function() { openHistoriqueLocal(); });
+        } else {
+            openHistoriqueLocal();
+        }
+    }
+
+    function openHistoriqueLocal() {
         try {
             var h = JSON.parse(localStorage.getItem('salve-history') || '{}');
             var keys = Object.keys(h).sort().reverse();
@@ -1443,7 +1514,6 @@
         } catch(e) {
             document.getElementById('history-content').innerHTML = '<p class="empty-msg">Erreur de chargement</p>';
         }
-        document.getElementById('modal-historique').className = 'modal-overlay active';
     }
 
     // ===== PAUSE =====
@@ -1651,6 +1721,19 @@
             renderHistorique();
             updateBilan();
             saveData();
+            if (grp_token) {
+                api('POST', '/sessions/start', {
+                    poste_id: posteId, joueur: nomJoueur,
+                    duree_min: 0, prix: montant
+                }).then(function(r) {
+                    if (r && r.id) {
+                        api('DELETE', '/sessions/' + r.id, {
+                            poste_nom: poste.nom, console_nom: poste.console,
+                            montant_final: montant
+                        }).catch(function() {});
+                    }
+                }).catch(function() {});
+            }
         };
     }
 
@@ -2179,9 +2262,39 @@
     function doLogin() {
         var u = document.getElementById('login-user').value.trim();
         var p = document.getElementById('login-pass').value;
+        var errEl = document.getElementById('login-error');
+        var btnEl = document.querySelector('#login-overlay .btn-start');
+        if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Connexion…'; }
+
+        api('POST', '/auth/login', { username: u, password: p })
+            .then(function(data) {
+                if (data.token) {
+                    grp_token = data.token;
+                    sessionStorage.setItem('grp-api-token', grp_token);
+                    var role = data.role === 'admin' ? '1' : '2';
+                    sessionStorage.setItem('salve-auth', role);
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                    initApp();
+                } else {
+                    // Fallback local si API ne répond pas correctement
+                    localLogin(u, p);
+                }
+            })
+            .catch(function() {
+                // Hors ligne : fallback sur credentials locaux
+                localLogin(u, p);
+            })
+            .finally(function() {
+                if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Connexion'; }
+            });
+    }
+
+    function localLogin(u, p) {
         var cred = getCredentials();
         var adm = cred.admin || cred;
         var cai = cred.caissier;
+        var errEl = document.getElementById('login-error');
         if (u === adm.user && p === adm.pass) {
             sessionStorage.setItem('salve-auth', '1');
             document.getElementById('login-overlay').style.display = 'none';
@@ -2193,7 +2306,7 @@
             document.getElementById('main-content').style.display = 'block';
             initApp();
         } else {
-            document.getElementById('login-error').style.display = 'block';
+            errEl.style.display = 'block';
             document.getElementById('login-pass').value = '';
         }
     }
@@ -2215,6 +2328,8 @@
 
     function doLogout() {
         sessionStorage.removeItem('salve-auth');
+        sessionStorage.removeItem('grp-api-token');
+        grp_token = null;
         location.reload();
     }
 
