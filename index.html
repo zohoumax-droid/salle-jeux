@@ -686,6 +686,29 @@
         .rapport-console-card.ps2 .c-name { color: var(--ps2); }
         .rapport-console-card.ps3 .c-name { color: var(--ps3); }
         .rapport-console-card.ps4 .c-name { color: var(--ps4); }
+
+        /* === PANNE === */
+        .poste-card.panne { opacity: 0.75; border: 2px dashed #ff9800 !important; }
+        .status-badge.panne { background: #ff9800; color: #000; }
+        .panne-msg { text-align:center; color:#ff9800; font-size:0.9rem; padding:14px 0; font-weight:600; }
+        .btn-panne { display:block; width:100%; padding:7px; border-radius:8px; border:1px dashed #ff9800; background:transparent; color:#ff9800; cursor:pointer; font-size:0.8rem; margin-top:6px; transition:background .2s; }
+        .btn-panne:hover { background:rgba(255,152,0,0.15); }
+        .btn-panne.active { background:rgba(76,175,80,0.15); border-color:#4caf50; color:#4caf50; }
+
+        /* === LOGO HEADER === */
+        .header-logo { height:38px; width:38px; object-fit:cover; border-radius:50%; border:2px solid #7c3aed; display:none; }
+
+        /* === CAISSIER BADGE === */
+        .role-badge { display:inline-block; background:rgba(255,152,0,0.15); border:1px solid #ff9800; color:#ff9800; padding:2px 10px; border-radius:20px; font-size:0.72rem; margin-top:4px; }
+
+        /* === DONNÉES PANEL === */
+        .data-section-title { color:#a78bfa; font-size:0.88rem; font-weight:bold; margin-bottom:8px; }
+        .data-section-desc { color:#aaa; font-size:0.8rem; margin-bottom:12px; line-height:1.5; }
+        .btn-data { width:100%; padding:11px; border-radius:10px; border:none; cursor:pointer; font-size:0.88rem; font-weight:600; margin-bottom:10px; transition:opacity .2s; }
+        .btn-data:hover { opacity:0.85; }
+        .btn-data.blue { background:rgba(124,58,237,0.2); border:1px solid #7c3aed; color:#a78bfa; }
+        .btn-data.green { background:rgba(76,175,80,0.2); border:1px solid #4caf50; color:#4caf50; }
+        .btn-data.purple { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; }
     </style>
 </head>
 <body>
@@ -736,7 +759,7 @@
 <div id="main-content">
 
 <header>
-    <div></div>
+    <div><img id="header-logo" class="header-logo" src="" alt="logo" /></div>
     <div class="header-center">
         <h1>&#127918; GameRoom Pro</h1>
         <p id="datetime">Chargement...</p>
@@ -796,8 +819,9 @@
     <div class="history-modal">
         <h3>&#128197; Historique des jours</h3>
         <div id="history-content"></div>
-        <div style="display:flex;gap:10px;margin-top:20px">
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
             <button class="btn btn-start" style="flex:1" onclick="printHistorique()">&#128424; Imprimer</button>
+            <button class="btn" style="flex:1;background:rgba(76,175,80,0.2);border:1px solid #4caf50;color:#4caf50" onclick="exportCSV()">&#128202; CSV</button>
             <button class="btn btn-stop" style="flex:1;display:block" onclick="document.getElementById('modal-historique').className='modal-overlay'">Fermer</button>
         </div>
     </div>
@@ -826,6 +850,7 @@
                 <div class="settings-tab" onclick="switchTab('tarifs')">&#128176; Tarifs</div>
                 <div class="settings-tab" onclick="switchTab('salle')">&#127968; Salle</div>
                 <div class="settings-tab" onclick="switchTab('postes')">&#127918; Postes</div>
+                <div class="settings-tab" onclick="switchTab('donnees')">&#128190; Données</div>
             </div>
         </div>
 
@@ -851,6 +876,26 @@
                 </div>
                 <div class="settings-msg" id="settings-msg"></div>
                 <button class="btn btn-start" onclick="saveSecurite()">&#10003; Enregistrer</button>
+
+                <hr style="border-color:#2a2a5a;margin:22px 0">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                    <p style="color:#a78bfa;font-size:0.88rem;font-weight:bold;margin:0">&#128119; Compte Caissier</p>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#aaa;font-size:0.82rem">
+                        <input type="checkbox" id="caissier-active" style="width:18px;height:18px;cursor:pointer;accent-color:#7c3aed" />
+                        Activer
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label>Identifiant caissier</label>
+                    <input class="settings-input" id="caissier-user" type="text" placeholder="ex: caissier" maxlength="30" />
+                </div>
+                <div class="settings-group">
+                    <label>Mot de passe caissier</label>
+                    <input class="settings-input" id="caissier-pass" type="password" placeholder="Min. 4 caractères" />
+                </div>
+                <div class="settings-msg" id="caissier-msg"></div>
+                <button class="btn" style="background:rgba(167,139,250,0.15);border:1px solid #7c3aed;color:#a78bfa;width:100%" onclick="saveCaissier()">&#10003; Enregistrer le caissier</button>
+                <p style="color:#555;font-size:0.75rem;margin-top:10px">Le caissier peut gérer les sessions mais ne voit pas les paramètres.</p>
             </div>
 
             <!-- Tarifs -->
@@ -876,6 +921,18 @@
 
             <!-- Salle -->
             <div class="settings-panel" id="panel-salle">
+                <div class="settings-group">
+                    <label>Logo de la salle</label>
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+                        <img id="logo-preview" src="" alt="logo" style="height:56px;width:56px;border-radius:50%;border:2px solid #7c3aed;object-fit:cover;display:none" />
+                        <div style="display:flex;flex-direction:column;gap:7px">
+                            <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(this)" />
+                            <button class="btn btn-start" style="padding:8px 14px;font-size:0.82rem" onclick="document.getElementById('logo-file').click()">&#128247; Choisir un logo</button>
+                            <button class="btn btn-danger" id="logo-remove-btn" onclick="removeLogo()" style="display:none;padding:7px 14px;font-size:0.82rem">&#10005; Supprimer le logo</button>
+                        </div>
+                    </div>
+                </div>
+                <hr style="border-color:#2a2a5a;margin:14px 0">
                 <div class="settings-group">
                     <label>Nom de la salle</label>
                     <input class="settings-input" id="set-roomname" type="text" maxlength="40" />
@@ -920,6 +977,22 @@
                 </div>
                 <div class="settings-msg" id="consoles-msg"></div>
 
+            </div>
+
+            <!-- Données -->
+            <div class="settings-panel" id="panel-donnees">
+                <p class="data-section-title">&#128190; Sauvegarde des données</p>
+                <p class="data-section-desc">Exportez toutes vos données (recettes, historique, paramètres) dans un fichier. Restaurez-les si vous changez de téléphone ou réinstallez l'app.</p>
+                <button class="btn-data purple" onclick="saveBackup()">&#128190; Télécharger la sauvegarde</button>
+                <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreBackup(this)" />
+                <button class="btn-data blue" onclick="document.getElementById('restore-file').click()">&#128229; Restaurer une sauvegarde</button>
+
+                <hr style="border-color:#2a2a5a;margin:18px 0">
+                <p class="data-section-title">&#128202; Export Excel / Google Sheets</p>
+                <p class="data-section-desc">Exportez l'historique des jours en fichier CSV, compatible avec Excel et Google Sheets.</p>
+                <button class="btn-data green" onclick="exportCSV()">&#128202; Exporter en CSV</button>
+
+                <div class="settings-msg" id="donnees-msg"></div>
             </div>
 
         </div>
@@ -1348,8 +1421,9 @@
 
     function updateStats() {
         var occ = Object.keys(timers).length;
+        var panneCount = POSTES.filter(function(p) { return PANNES && PANNES[p.id]; }).length;
         document.getElementById('nb-occupes').textContent = occ;
-        document.getElementById('nb-libres').textContent = POSTES.length - occ;
+        document.getElementById('nb-libres').textContent = POSTES.length - occ - panneCount;
         document.getElementById('recettes-stat').textContent = recettes.toLocaleString('fr-FR');
         document.getElementById('total-recettes').textContent = recettes.toLocaleString('fr-FR') + ' FCFA';
     }
@@ -1379,6 +1453,8 @@
         document.getElementById('btnstart-' + posteId).style.display = 'none';
         document.getElementById('btnstop-' + posteId).style.display = 'block';
         document.getElementById('btnpause-' + posteId).style.display = 'block';
+        var bp = document.getElementById('btnpanne-' + posteId);
+        if (bp) bp.style.display = 'none';
         document.getElementById('timer-' + posteId).style.display = 'block';
         document.getElementById('duree-' + posteId).style.display = 'none';
         document.getElementById('prix-' + posteId).style.display = 'none';
@@ -1518,6 +1594,8 @@
         pi.style.display = 'block';
         document.getElementById('playerdisplay-' + posteId).style.display = 'none';
         document.getElementById('prolonger-' + posteId).className = 'prolonger-row';
+        var bp = document.getElementById('btnpanne-' + posteId);
+        if (bp) bp.style.display = 'block';
     }
 
     function renderHistorique() {
@@ -1678,42 +1756,50 @@
         grid.innerHTML = '';
         POSTES.forEach(function(poste) {
             var c = cc(poste.console);
+            var isPanne = !!(PANNES && PANNES[poste.id]);
             var card = document.createElement('div');
-            card.className = 'poste-card ' + c + ' libre';
+            card.className = 'poste-card ' + c + (isPanne ? ' panne' : ' libre');
             card.id = 'card-' + poste.id;
+            var hn = isPanne ? 'none' : 'block';
             card.innerHTML =
                 '<div class="poste-header">' +
                     '<span class="poste-name">' + poste.nom + '</span>' +
-                    '<span class="status-badge libre ' + c + '" id="badge-' + poste.id + '">Libre</span>' +
+                    '<span class="status-badge ' + (isPanne ? 'panne' : 'libre ' + c) + '" id="badge-' + poste.id + '">' + (isPanne ? '&#128295; Panne' : 'Libre') + '</span>' +
                 '</div>' +
-                '<div class="console-type ' + c + '">🎮 ' + poste.console + '</div>' +
+                '<div class="console-type ' + c + '">&#127918; ' + poste.console + '</div>' +
                 '<div class="player-name-display" id="playerdisplay-' + poste.id + '"></div>' +
                 '<div class="timer-display" id="timer-' + poste.id + '">00:00:00</div>' +
                 '<div class="prolonger-row" id="prolonger-' + poste.id + '">' +
                     '<button class="btn-prolonger" onclick="prolongerSession(\'' + poste.id + '\',30)">+30 min</button>' +
                     '<button class="btn-prolonger" onclick="prolongerSession(\'' + poste.id + '\',60)">+1 heure</button>' +
                 '</div>' +
-                '<input class="player-input" id="player-' + poste.id + '" type="text" placeholder="Nom du joueur..." maxlength="30" />' +
-                '<select class="duration-select" id="duree-' + poste.id + '" onchange="updatePrix(\'' + poste.id + '\')">' +
+                (isPanne ? '<div class="panne-msg">&#128295; Ce poste est hors service</div>' : '') +
+                '<input class="player-input" id="player-' + poste.id + '" type="text" placeholder="Nom du joueur..." maxlength="30" style="display:' + hn + '" />' +
+                '<select class="duration-select" id="duree-' + poste.id + '" onchange="updatePrix(\'' + poste.id + '\')" style="display:' + hn + '">' +
                     '<option value="30">30 min — ' + TARIFS[poste.console][30].toLocaleString('fr-FR') + ' FCFA</option>' +
                     '<option value="60">1 heure — ' + TARIFS[poste.console][60].toLocaleString('fr-FR') + ' FCFA</option>' +
                     '<option value="120">2 heures — ' + TARIFS[poste.console][120].toLocaleString('fr-FR') + ' FCFA</option>' +
                 '</select>' +
-                '<div class="prix-display" id="prix-' + poste.id + '">' + TARIFS[poste.console][30].toLocaleString('fr-FR') + ' FCFA</div>' +
-                '<button class="btn btn-start" id="btnstart-' + poste.id + '" onclick="startSession(\'' + poste.id + '\')">&#9654; Démarrer</button>' +
+                '<div class="prix-display" id="prix-' + poste.id + '" style="display:' + hn + '">' + TARIFS[poste.console][30].toLocaleString('fr-FR') + ' FCFA</div>' +
+                '<button class="btn btn-start" id="btnstart-' + poste.id + '" onclick="startSession(\'' + poste.id + '\')" style="display:' + hn + '">&#9654; Démarrer</button>' +
                 '<button class="btn-pause" id="btnpause-' + poste.id + '" onclick="togglePause(\'' + poste.id + '\')">&#9646;&#9646; Pause</button>' +
-                '<button class="btn btn-stop" id="btnstop-' + poste.id + '" onclick="stopSession(\'' + poste.id + '\')">&#9632; Terminer</button>';
+                '<button class="btn btn-stop" id="btnstop-' + poste.id + '" onclick="stopSession(\'' + poste.id + '\')">&#9632; Terminer</button>' +
+                '<button class="btn-panne' + (isPanne ? ' active' : '') + '" id="btnpanne-' + poste.id + '" onclick="togglePanne(\'' + poste.id + '\')">' + (isPanne ? '&#10003; Remettre en service' : '&#128295; Signaler une panne') + '</button>';
             grid.appendChild(card);
         });
     }
 
     // ===== LOGIN =====
-    var DEFAULT_CRED = { user: 'admin', pass: 'admin' };
+    var DEFAULT_CRED = { admin: { user: 'admin', pass: 'admin' }, caissier: { active: false, user: 'caissier', pass: '' } };
 
     function getCredentials() {
         try {
             var saved = localStorage.getItem('salve-credentials');
-            if (saved) return JSON.parse(saved);
+            if (saved) {
+                var p = JSON.parse(saved);
+                if (p.user && !p.admin) return { admin: { user: p.user, pass: p.pass }, caissier: { active: false, user: 'caissier', pass: '' } };
+                return p;
+            }
         } catch(e) {}
         return DEFAULT_CRED;
     }
@@ -1755,10 +1841,20 @@
         });
         tarifsHtml += '<br><button class="btn btn-start" onclick="saveTarifs()">✓ Enregistrer les tarifs</button><div class="settings-msg" id="tarifs-msg"></div>';
         document.getElementById('panel-tarifs').innerHTML = tarifsHtml;
-        // Salle
+        // Caissier
+        var cai = cred.caissier || { active: false, user: 'caissier', pass: '' };
+        document.getElementById('caissier-active').checked = !!cai.active;
+        document.getElementById('caissier-user').value = cai.user || '';
+        document.getElementById('caissier-pass').value = cai.active ? cai.pass : '';
+        document.getElementById('caissier-msg').style.display = 'none';
+        // Salle + logo
         document.getElementById('set-roomname').value = ROOM_NAME;
         document.getElementById('salle-msg').style.display = 'none';
         document.getElementById('reset-msg').style.display = 'none';
+        loadLogo();
+        // Données
+        var dmsg = document.getElementById('donnees-msg');
+        if (dmsg) dmsg.style.display = 'none';
         // Postes
         renderPostesManage();
         renderConsolesManage();
@@ -1771,7 +1867,7 @@
 
     function switchTabDirect(name) {
         document.querySelectorAll('.settings-tab').forEach(function(t,i) {
-            t.classList.toggle('active', ['securite','tarifs','salle','postes'][i] === name);
+            t.classList.toggle('active', ['securite','tarifs','salle','postes','donnees'][i] === name);
         });
         document.querySelectorAll('.settings-panel').forEach(function(p) { p.classList.remove('active'); });
         document.getElementById('panel-' + name).classList.add('active');
@@ -1785,19 +1881,33 @@
         var newUser = document.getElementById('set-username').value.trim();
         var oldPass = document.getElementById('settings-old').value;
         var newPass = document.getElementById('settings-new').value.trim();
-        var confirm = document.getElementById('settings-confirm').value.trim();
+        var conf = document.getElementById('settings-confirm').value.trim();
         var cred = getCredentials();
+        var adm = cred.admin || cred;
 
         if (!newUser) { showMsg('settings-msg', 'Identifiant vide.', false); return; }
-        if (newPass || oldPass || confirm) {
-            if (oldPass !== cred.pass) { showMsg('settings-msg', 'Mot de passe actuel incorrect.', false); return; }
+        var finalPass = adm.pass;
+        if (newPass || oldPass || conf) {
+            if (oldPass !== adm.pass) { showMsg('settings-msg', 'Mot de passe actuel incorrect.', false); return; }
             if (newPass.length < 4) { showMsg('settings-msg', 'Minimum 4 caractères requis.', false); return; }
-            if (newPass !== confirm) { showMsg('settings-msg', 'Les mots de passe ne correspondent pas.', false); return; }
-            localStorage.setItem('salve-credentials', JSON.stringify({ user: newUser, pass: newPass }));
-        } else {
-            localStorage.setItem('salve-credentials', JSON.stringify({ user: newUser, pass: cred.pass }));
+            if (newPass !== conf) { showMsg('settings-msg', 'Les mots de passe ne correspondent pas.', false); return; }
+            finalPass = newPass;
         }
+        cred.admin = { user: newUser, pass: finalPass };
+        localStorage.setItem('salve-credentials', JSON.stringify(cred));
         showMsg('settings-msg', 'Paramètres de sécurité enregistrés !', true);
+    }
+
+    function saveCaissier() {
+        var active = document.getElementById('caissier-active').checked;
+        var user = document.getElementById('caissier-user').value.trim();
+        var pass = document.getElementById('caissier-pass').value;
+        if (active && !user) { showMsg('caissier-msg', 'Identifiant vide.', false); return; }
+        if (active && pass.length < 4) { showMsg('caissier-msg', 'Minimum 4 caractères.', false); return; }
+        var cred = getCredentials();
+        cred.caissier = { active: active, user: user, pass: active ? pass : '' };
+        localStorage.setItem('salve-credentials', JSON.stringify(cred));
+        showMsg('caissier-msg', active ? 'Compte caissier activé !' : 'Compte caissier désactivé.', true);
     }
 
     function saveTarifs() {
@@ -1952,8 +2062,15 @@
         var u = document.getElementById('login-user').value.trim();
         var p = document.getElementById('login-pass').value;
         var cred = getCredentials();
-        if (u === cred.user && p === cred.pass) {
+        var adm = cred.admin || cred;
+        var cai = cred.caissier;
+        if (u === adm.user && p === adm.pass) {
             sessionStorage.setItem('salve-auth', '1');
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            initApp();
+        } else if (cai && cai.active && cai.pass && u === cai.user && p === cai.pass) {
+            sessionStorage.setItem('salve-auth', '2');
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
             initApp();
@@ -1968,20 +2085,142 @@
         location.reload();
     }
 
+    // ===== PANNE =====
+    var PANNES = {};
+
+    function loadPannes() {
+        try { var p = localStorage.getItem('grp-pannes'); if (p) PANNES = JSON.parse(p); } catch(e) { PANNES = {}; }
+    }
+
+    function savePannes() {
+        localStorage.setItem('grp-pannes', JSON.stringify(PANNES));
+    }
+
+    function togglePanne(id) {
+        if (sessions[id]) { alert('Session en cours — impossible de mettre ce poste en panne.'); return; }
+        PANNES[id] = !PANNES[id];
+        savePannes();
+        renderPostes();
+        updateStats();
+    }
+
+    // ===== LOGO =====
+    function uploadLogo(input) {
+        var file = input.files[0];
+        if (!file) return;
+        if (file.size > 600000) { showMsg('salle-msg', 'Image trop grande (max 600 Ko).', false); return; }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            localStorage.setItem('salve-logo', e.target.result);
+            loadLogo();
+            showMsg('salle-msg', 'Logo enregistré !', true);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeLogo() {
+        localStorage.removeItem('salve-logo');
+        loadLogo();
+        showMsg('salle-msg', 'Logo supprimé.', true);
+    }
+
+    function loadLogo() {
+        var logo = localStorage.getItem('salve-logo');
+        var hdr = document.getElementById('header-logo');
+        var pre = document.getElementById('logo-preview');
+        var rem = document.getElementById('logo-remove-btn');
+        if (logo) {
+            if (hdr) { hdr.src = logo; hdr.style.display = 'block'; }
+            if (pre) { pre.src = logo; pre.style.display = 'block'; }
+            if (rem) rem.style.display = 'block';
+        } else {
+            if (hdr) hdr.style.display = 'none';
+            if (pre) pre.style.display = 'none';
+            if (rem) rem.style.display = 'none';
+        }
+    }
+
+    // ===== SAUVEGARDE =====
+    function saveBackup() {
+        var data = {};
+        for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k && (k.startsWith('salve-') || k.startsWith('grp-'))) data[k] = localStorage.getItem(k);
+        }
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'grp-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showMsg('donnees-msg', 'Sauvegarde téléchargée !', true);
+    }
+
+    function restoreBackup(input) {
+        var file = input.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = JSON.parse(e.target.result);
+                if (!confirm('Cela va remplacer toutes les données actuelles. Continuer ?')) return;
+                Object.keys(data).forEach(function(k) { localStorage.setItem(k, data[k]); });
+                showMsg('donnees-msg', 'Données restaurées ! Rechargement...', true);
+                setTimeout(function() { location.reload(); }, 1500);
+            } catch(err) { showMsg('donnees-msg', 'Fichier invalide.', false); }
+        };
+        reader.readAsText(file);
+        input.value = '';
+    }
+
+    // ===== EXPORT CSV =====
+    function exportCSV() {
+        var history = [];
+        try { var h = localStorage.getItem('salve-history'); if (h) history = JSON.parse(h); } catch(e) {}
+        if (!history.length) { showMsg('donnees-msg', 'Aucun historique à exporter.', false); return; }
+        var rows = ['Date,Recettes (FCFA),Dépenses (FCFA),Bénéfice (FCFA),Sessions'];
+        history.forEach(function(day) {
+            var rec = day.recettes || 0;
+            var dep = (day.depenses || []).reduce(function(s, d) { return s + (d.montant || 0); }, 0);
+            var ses = (day.transactions || []).length;
+            rows.push(day.date + ',' + rec + ',' + dep + ',' + (rec - dep) + ',' + ses);
+        });
+        var blob = new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'historique-gameroom-' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showMsg('donnees-msg', 'CSV exporté avec succès !', true);
+    }
+
     function initApp() {
         applyConsoleStyles();
         loadData();
+        loadPannes();
         renderPostes();
         renderHistorique();
         renderDepenses();
         updateStats();
         updateBilan();
+        loadLogo();
         document.querySelector('header h1').textContent = '🎮 ' + ROOM_NAME;
         document.title = ROOM_NAME;
+        if (sessionStorage.getItem('salve-auth') !== '1') {
+            var sb = document.querySelector('.btn-settings');
+            if (sb) sb.style.display = 'none';
+            var badge = document.createElement('span');
+            badge.className = 'role-badge';
+            badge.textContent = '👷 Mode Caissier';
+            document.querySelector('.header-center').appendChild(badge);
+        }
     }
 
     // Vérifier si déjà connecté
-    if (sessionStorage.getItem('salve-auth') === '1') {
+    var _auth = sessionStorage.getItem('salve-auth');
+    if (_auth === '1' || _auth === '2') {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
         initApp();
