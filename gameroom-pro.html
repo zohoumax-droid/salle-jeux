@@ -2087,16 +2087,38 @@
         var adm = cred.admin || cred;
 
         if (!newUser) { showMsg('settings-msg', 'Identifiant vide.', false); return; }
-        var finalPass = adm.pass;
-        if (newPass || oldPass || conf) {
-            if (oldPass !== adm.pass) { showMsg('settings-msg', 'Mot de passe actuel incorrect.', false); return; }
+
+        var changingPass = !!(newPass || oldPass || conf);
+        if (changingPass) {
             if (newPass.length < 4) { showMsg('settings-msg', 'Minimum 4 caractères requis.', false); return; }
             if (newPass !== conf) { showMsg('settings-msg', 'Les mots de passe ne correspondent pas.', false); return; }
-            finalPass = newPass;
         }
-        cred.admin = { user: newUser, pass: finalPass };
-        localStorage.setItem('salve-credentials', JSON.stringify(cred));
-        showMsg('settings-msg', 'Paramètres de sécurité enregistrés !', true);
+
+        if (grp_token && changingPass) {
+            // Changer via l'API
+            api('PUT', '/auth/password', { old_password: oldPass, new_password: newPass })
+                .then(function(data) {
+                    if (data.message) {
+                        cred.admin = { user: newUser, pass: newPass };
+                        localStorage.setItem('salve-credentials', JSON.stringify(cred));
+                        showMsg('settings-msg', '✓ Mot de passe modifié !', true);
+                        document.getElementById('settings-old').value = '';
+                        document.getElementById('settings-new').value = '';
+                        document.getElementById('settings-confirm').value = '';
+                    } else {
+                        showMsg('settings-msg', data.error || 'Erreur', false);
+                    }
+                })
+                .catch(function() { showMsg('settings-msg', 'Erreur réseau. Réessaie.', false); });
+        } else {
+            // Mode hors ligne — vérification locale
+            if (changingPass && oldPass !== adm.pass) {
+                showMsg('settings-msg', 'Mot de passe actuel incorrect.', false); return;
+            }
+            cred.admin = { user: newUser, pass: changingPass ? newPass : adm.pass };
+            localStorage.setItem('salve-credentials', JSON.stringify(cred));
+            showMsg('settings-msg', 'Paramètres de sécurité enregistrés !', true);
+        }
     }
 
     function saveCaissier() {
