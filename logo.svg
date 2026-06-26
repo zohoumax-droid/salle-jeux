@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="60%">
+      <stop offset="0%" stop-color="#0a1855"/>
+      <stop offset="50%" stop-color="#1040a0"/>
+      <stop offset="100%" stop-color="#00c8f0"/>
+    </linearGradient>
+    <linearGradient id="gi" x1="0%" y1="0%" x2="100%" y2="60%">
+      <stop offset="0%" stop-color="#0a1855" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#00c8f0" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Controller body outline -->
+  <path fill="url(#gi)" stroke="url(#g)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"
+    d="M 88,82
+       C 75,58 82,38 104,38
+       L 296,38
+       C 318,38 325,58 312,82
+       L 318,112
+       C 325,138 342,155 352,172
+       C 362,190 350,205 334,196
+       C 316,186 306,168 297,148
+       L 103,148
+       C 94,168 84,186 66,196
+       C 50,205 38,190 48,172
+       C 58,155 75,138 82,112
+       Z"/>
+
+  <!-- D-pad left -->
+  <rect x="105" y="71" width="10" height="30" rx="3" fill="url(#g)"/>
+  <rect x="96" y="80" width="28" height="10" rx="3" fill="url(#g)"/>
+
+  <!-- Left joystick circle -->
+  <circle cx="120" cy="120" r="13" fill="none" stroke="url(#g)" stroke-width="3.5"/>
+
+  <!-- Center symbol (cercle + croix) -->
+  <circle cx="200" cy="90" r="24" fill="none" stroke="url(#g)" stroke-width="4"/>
+  <line x1="183" y1="73" x2="217" y2="107" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+  <line x1="217" y1="73" x2="183" y2="107" stroke="url(#g)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Right joystick circle -->
+  <circle cx="280" cy="120" r="13" fill="none" stroke="url(#g)" stroke-width="3.5"/>
+
+  <!-- Action buttons (4 dots) -->
+  <circle cx="285" cy="70" r="8" fill="url(#g)"/>
+  <circle cx="300" cy="85" r="8" fill="url(#g)"/>
+  <circle cx="270" cy="85" r="8" fill="url(#g)"/>
+  <circle cx="285" cy="100" r="8" fill="url(#g)"/>
+
+  <!-- Select/Start small buttons -->
+  <rect x="172" y="75" width="10" height="7" rx="3" fill="url(#g)"/>
+  <rect x="218" y="75" width="10" height="7" rx="3" fill="url(#g)"/>
+
+  <!-- Bumper top left -->
+  <path d="M 102,38 C 88,24 115,20 130,30" fill="none" stroke="url(#g)" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Bumper top right -->
+  <path d="M 298,38 C 312,24 285,20 270,30" fill="none" stroke="url(#g)" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Text GAMEROOM MANAGEMENT -->
+  <text x="200" y="192" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#0a1855" text-anchor="middle" letter-spacing="2">GAMEROOM MANAGEMENT</text>
+  <!-- Sous-titre -->
+  <text x="200" y="216" font-family="Arial, sans-serif" font-size="13" font-weight="400" fill="#1040a0" text-anchor="middle" letter-spacing="4">LOGICIEL DE GESTION</text>
+</svg>
