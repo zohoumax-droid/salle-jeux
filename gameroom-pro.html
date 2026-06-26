@@ -888,7 +888,7 @@
             <div class="login-error" id="login-error">Identifiant ou mot de passe incorrect</div>
             <button class="btn btn-start" onclick="doLogin()">Se connecter</button>
             <a href="#" onclick="toggleRecovery(true);return false" style="display:block;text-align:center;margin-top:12px;color:#aaa;font-size:0.82rem">Mot de passe oublié ?</a>
-            <a href="./inscription.html" style="display:block;text-align:center;margin-top:8px;color:#a78bfa;font-size:0.85rem;text-decoration:none">+ Créer un compte salle</a>
+            <a href="#" onclick="showInscription(true);return false" style="display:block;text-align:center;margin-top:8px;color:#a78bfa;font-size:0.85rem;text-decoration:none">+ Créer un compte salle</a>
         </div>
         <!-- Formulaire récupération -->
         <div id="recovery-form" style="display:none">
@@ -912,6 +912,27 @@
         <input class="login-input" id="fl-confirm" type="password" placeholder="Confirmer le mot de passe" onkeydown="if(event.key==='Enter') saveFirstPassword()" />
         <div class="login-error" id="fl-error" style="display:none"></div>
         <button class="btn btn-start" onclick="saveFirstPassword()">&#10003; Enregistrer</button>
+    </div>
+</div>
+
+<!-- Overlay inscription -->
+<div id="inscription-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a14;z-index:9999;overflow-y:auto;padding:20px;justify-content:flex-start;align-items:flex-start;">
+    <div class="login-box" style="margin:30px auto;max-width:420px;width:100%">
+        <h2 style="color:#a78bfa;text-align:center;margin-bottom:4px">&#127918; Créer un compte salle</h2>
+        <p style="color:#aaa;font-size:0.82rem;text-align:center;margin-bottom:20px">Remplissez les informations pour votre salle</p>
+
+        <p style="color:#a78bfa;font-size:0.78rem;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">&#127968; Votre salle</p>
+        <input class="login-input" id="reg-salle-nom" type="text" placeholder="Nom de la salle *" maxlength="60" autocomplete="off" />
+        <input class="login-input" id="reg-salle-ville" type="text" placeholder="Ville" maxlength="60" autocomplete="off" />
+
+        <p style="color:#a78bfa;font-size:0.78rem;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;margin-top:6px">&#128274; Compte admin</p>
+        <input class="login-input" id="reg-username" type="text" placeholder="Identifiant *" maxlength="30" autocomplete="username" />
+        <input class="login-input" id="reg-password" type="password" placeholder="Mot de passe * (min. 4 car.)" autocomplete="new-password" />
+        <input class="login-input" id="reg-confirm2" type="password" placeholder="Confirmer le mot de passe *" autocomplete="new-password" />
+
+        <div id="reg-msg" style="display:none;padding:10px;border-radius:8px;font-size:0.85rem;margin-bottom:10px;text-align:center"></div>
+        <button class="btn btn-start" id="reg-btn" onclick="doRegister()">Créer mon compte</button>
+        <a href="#" onclick="showInscription(false);return false" style="display:block;text-align:center;margin-top:14px;color:#aaa;font-size:0.82rem">&#8592; Retour à la connexion</a>
     </div>
 </div>
 
@@ -2184,6 +2205,64 @@
             localStorage.setItem('salve-credentials', JSON.stringify(cred));
             showMsg('settings-msg', 'Paramètres de sécurité enregistrés !', true);
         }
+    }
+
+    // ===== INSCRIPTION =====
+    function showInscription(show) {
+        document.getElementById('inscription-overlay').style.display = show ? 'flex' : 'none';
+        document.getElementById('login-overlay').style.display = show ? 'none' : 'flex';
+        if (show) {
+            document.getElementById('reg-salle-nom').value = '';
+            document.getElementById('reg-salle-ville').value = '';
+            document.getElementById('reg-username').value = '';
+            document.getElementById('reg-password').value = '';
+            document.getElementById('reg-confirm2').value = '';
+            document.getElementById('reg-msg').style.display = 'none';
+        }
+    }
+
+    function showRegMsg(text, ok) {
+        var el = document.getElementById('reg-msg');
+        el.textContent = text;
+        el.style.display = 'block';
+        el.style.background = ok ? 'rgba(76,175,80,0.15)' : 'rgba(255,77,109,0.15)';
+        el.style.color = ok ? '#4caf50' : '#ff4d6d';
+        el.style.border = '1px solid ' + (ok ? 'rgba(76,175,80,0.3)' : 'rgba(255,77,109,0.3)');
+    }
+
+    function doRegister() {
+        var salleNom  = document.getElementById('reg-salle-nom').value.trim();
+        var ville     = document.getElementById('reg-salle-ville').value.trim();
+        var user      = document.getElementById('reg-username').value.trim();
+        var pass      = document.getElementById('reg-password').value;
+        var conf      = document.getElementById('reg-confirm2').value;
+        var btn       = document.getElementById('reg-btn');
+
+        document.getElementById('reg-msg').style.display = 'none';
+        if (!salleNom) { showRegMsg('Entrez le nom de votre salle.', false); return; }
+        if (!user)     { showRegMsg('Entrez un identifiant.', false); return; }
+        if (pass.length < 4) { showRegMsg('Minimum 4 caractères.', false); return; }
+        if (pass !== conf)   { showRegMsg('Les mots de passe ne correspondent pas.', false); return; }
+
+        btn.disabled = true; btn.textContent = 'Création en cours…';
+        api('POST', '/auth/register', { salle_nom: salleNom, ville: ville, username: user, password: pass })
+            .then(function(data) {
+                btn.disabled = false; btn.textContent = 'Créer mon compte';
+                if (data.salle_id) {
+                    showRegMsg('✓ Compte créé ! Connectez-vous.', true);
+                    setTimeout(function() {
+                        showInscription(false);
+                        document.getElementById('login-user').value = user;
+                        document.getElementById('login-pass').focus();
+                    }, 2000);
+                } else {
+                    showRegMsg(data.error || 'Erreur lors de la création', false);
+                }
+            })
+            .catch(function() {
+                btn.disabled = false; btn.textContent = 'Créer mon compte';
+                showRegMsg('Erreur réseau. Vérifiez votre connexion.', false);
+            });
     }
 
     // ===== RÉCUPÉRATION MOT DE PASSE =====
