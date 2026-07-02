@@ -1270,6 +1270,13 @@
         errEl.style.display = 'none'; okEl.style.display = 'none';
         if (!validateLicense(key)) { errEl.style.display = 'block'; return; }
         localStorage.setItem('salve-license', key);
+        if (grp_token) {
+            fetch(API_BASE + '/auth/activate-license', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + grp_token },
+                body: JSON.stringify({ license_key: key })
+            });
+        }
         okEl.style.display = 'block';
         setTimeout(function() { location.reload(); }, 1200);
     }

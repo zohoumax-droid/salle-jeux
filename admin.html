@@ -178,11 +178,12 @@
                         <th>Sessions</th>
                         <th>Dernière activité</th>
                         <th>Statut</th>
+                        <th>Licence</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="salles-tbody">
-                    <tr><td colspan="9" class="loading">Chargement…</td></tr>
+                    <tr><td colspan="10" class="loading">Chargement…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -256,14 +257,14 @@
             salles_data = Array.isArray(data) ? data : [];
             renderTable(salles_data);
         }).catch(() => {
-            document.getElementById('salles-tbody').innerHTML = '<tr><td colspan="9" class="loading" style="color:#ff4d6d">Erreur de chargement</td></tr>';
+            document.getElementById('salles-tbody').innerHTML = '<tr><td colspan="10" class="loading" style="color:#ff4d6d">Erreur de chargement</td></tr>';
         });
     }
 
     function renderTable(rows) {
         var tbody = document.getElementById('salles-tbody');
         if (!rows.length) {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Aucun client inscrit</td></tr>';
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Aucun client inscrit</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(s) {
@@ -272,6 +273,9 @@
             var badge = s.is_active
                 ? '<span class="badge on">Actif</span>'
                 : '<span class="badge off">Bloqué</span>';
+            var lic = s.license_key
+                ? '<span class="badge on">&#10003; Licencié</span>'
+                : '<span class="badge off">&#10005; Non licencié</span>';
             var btn = s.is_active
                 ? '<button class="btn-toggle actif" onclick="toggleSalle(' + s.id + ')">Bloquer</button>'
                 : '<button class="btn-toggle inactif" onclick="toggleSalle(' + s.id + ')">Activer</button>';
@@ -285,6 +289,7 @@
                 '<td>' + (s.total_sessions || 0) + '</td>' +
                 '<td>' + activ + '</td>' +
                 '<td>' + badge + '</td>' +
+                '<td>' + lic + '</td>' +
                 '<td>' + btn + '</td>' +
                 '</tr>';
         }).join('');
