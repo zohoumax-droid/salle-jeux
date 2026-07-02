@@ -178,12 +178,13 @@
                         <th>Sessions</th>
                         <th>Dernière activité</th>
                         <th>Statut</th>
+                        <th>Code appareil</th>
                         <th>Licence</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="salles-tbody">
-                    <tr><td colspan="10" class="loading">Chargement…</td></tr>
+                    <tr><td colspan="11" class="loading">Chargement…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -257,14 +258,14 @@
             salles_data = Array.isArray(data) ? data : [];
             renderTable(salles_data);
         }).catch(() => {
-            document.getElementById('salles-tbody').innerHTML = '<tr><td colspan="10" class="loading" style="color:#ff4d6d">Erreur de chargement</td></tr>';
+            document.getElementById('salles-tbody').innerHTML = '<tr><td colspan="11" class="loading" style="color:#ff4d6d">Erreur de chargement</td></tr>';
         });
     }
 
     function renderTable(rows) {
         var tbody = document.getElementById('salles-tbody');
         if (!rows.length) {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Aucun client inscrit</td></tr>';
+            tbody.innerHTML = '<tr class="empty-row"><td colspan="11">Aucun client inscrit</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(s) {
@@ -273,6 +274,10 @@
             var badge = s.is_active
                 ? '<span class="badge on">Actif</span>'
                 : '<span class="badge off">Bloqué</span>';
+            var dev = s.device_id
+                ? '<code style="font-size:0.8rem;letter-spacing:2px">' + s.device_id + '</code>' +
+                  '<button onclick="useDeviceId(\'' + s.device_id + '\')" style="margin-left:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.4);color:#a78bfa;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.72rem">&#128273; Clé</button>'
+                : '<span style="color:#555">—</span>';
             var lic = s.license_key
                 ? '<span class="badge on">&#10003; Licencié</span>'
                 : '<span class="badge off">&#10005; Non licencié</span>';
@@ -289,6 +294,7 @@
                 '<td>' + (s.total_sessions || 0) + '</td>' +
                 '<td>' + activ + '</td>' +
                 '<td>' + badge + '</td>' +
+                '<td>' + dev + '</td>' +
                 '<td>' + lic + '</td>' +
                 '<td>' + btn + '</td>' +
                 '</tr>';
@@ -331,6 +337,13 @@
                 document.querySelector('#key-result small').textContent = 'Cliquez pour copier';
             }, 2000);
         });
+    }
+
+    function useDeviceId(code) {
+        document.getElementById('device-input').value = code;
+        document.getElementById('key-result').style.display = 'none';
+        document.querySelector('.genkey-box').scrollIntoView({ behavior: 'smooth' });
+        genKey();
     }
 
     function deleteSalle(id, nom) {

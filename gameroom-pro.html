@@ -2605,7 +2605,7 @@
         var btnEl = document.querySelector('#login-overlay .btn-start');
         if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Connexion…'; }
 
-        api('POST', '/auth/login', { username: u, password: p })
+        api('POST', '/auth/login', { username: u, password: p, device_id: getDeviceId() })
             .then(function(data) {
                 if (data.token) {
                     grp_token = data.token;
