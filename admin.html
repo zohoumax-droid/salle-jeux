@@ -104,6 +104,8 @@
         .btn-toggle.actif    { background:rgba(255,77,109,0.15); color:#ff4d6d; border:1px solid rgba(255,77,109,0.35); }
         .btn-toggle.inactif  { background:rgba(76,175,80,0.15);  color:#4caf50; border:1px solid rgba(76,175,80,0.35); }
         .btn-toggle:hover { opacity:.75; }
+        .btn-del { background:rgba(255,77,109,0.12); border:1px solid rgba(255,77,109,0.35); color:#ff4d6d; border-radius:8px; padding:4px 10px; cursor:pointer; font-size:0.78rem; font-weight:700; margin-left:6px; }
+        .btn-del:hover { background:rgba(255,77,109,0.3); }
         .empty-row td { text-align:center; color:#555; padding:30px; }
         .loading { text-align:center; color:#666; padding:40px; }
     </style>
@@ -273,6 +275,7 @@
             var btn = s.is_active
                 ? '<button class="btn-toggle actif" onclick="toggleSalle(' + s.id + ')">Bloquer</button>'
                 : '<button class="btn-toggle inactif" onclick="toggleSalle(' + s.id + ')">Activer</button>';
+            btn += '<button class="btn-del" onclick="deleteSalle(' + s.id + ',\'' + (s.nom||'').replace(/'/g,'') + '\')">&#128465; Supprimer</button>';
             return '<tr>' +
                 '<td>' + s.id + '</td>' +
                 '<td><strong>' + (s.nom || '—') + '</strong></td>' +
@@ -323,6 +326,16 @@
                 document.querySelector('#key-result small').textContent = 'Cliquez pour copier';
             }, 2000);
         });
+    }
+
+    function deleteSalle(id, nom) {
+        if (!confirm('Supprimer définitivement "' + nom + '" ?\n\nToutes les données (sessions, postes, employés) seront perdues.')) return;
+        api('DELETE', '/superadmin/salles/' + id).then(function(data) {
+            if (data.error) { alert('Erreur : ' + data.error); return; }
+            salles_data = salles_data.filter(function(s) { return s.id !== id; });
+            renderTable(salles_data);
+            loadStats();
+        }).catch(function() { alert('Erreur réseau'); });
     }
 </script>
 </body>
