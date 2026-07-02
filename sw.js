@@ -1,4 +1,4 @@
-const CACHE = 'grp-app-v14';
+const CACHE = 'grp-app-v15';
 const FILES = [
     './gameroom-pro.html',
     './inscription.html',
